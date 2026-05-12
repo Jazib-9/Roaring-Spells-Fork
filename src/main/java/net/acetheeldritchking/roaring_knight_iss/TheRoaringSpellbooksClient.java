@@ -25,7 +25,5 @@ public class TheRoaringSpellbooksClient {
     @SubscribeEvent
     static void onClientSetup(FMLClientSetupEvent event) {
         // Some client setup code
-        TheRoaringSpellbooks.LOGGER.info("HELLO FROM CLIENT SETUP");
-        TheRoaringSpellbooks.LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
     }
 }
