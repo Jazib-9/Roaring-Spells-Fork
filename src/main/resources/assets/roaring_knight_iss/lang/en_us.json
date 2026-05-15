@@ -1,13 +1,16 @@
 {
-  "itemGroup.roaring_knight_iss": "Example Mod Tab",
+  "creative_tab.roaring_knight_iss.items": "The Roaring: Spellbooks",
+
+  "rarity.roaring_knight_iss_rarity_shaded.name": "Shaded",
+
   "block.roaring_knight_iss.example_block": "Example Block",
-  "item.roaring_knight_iss.example_item": "Example Item",
+
+  "item.roaring_knight_iss.dark_sabre": "Dark Sabre",
+  "item.roaring_knight_iss.black_executioner_spawn_egg": "Black Executioner Spawn Egg",
+
+  "entity.roaring_knight_iss.black_executioner_shade": "The Black Executioner",
 
   "roaring_knight_iss.configuration.title": "The Roaring: Spellbooks Configs",
   "roaring_knight_iss.configuration.section.roaring_knight_iss.common.toml": "The Roaring: Spellbooks Configs",
-  "roaring_knight_iss.configuration.section.roaring_knight_iss.common.toml.title": "The Roaring: Spellbooks Configs",
-  "roaring_knight_iss.configuration.items": "Item List",
-  "roaring_knight_iss.configuration.logDirtBlock": "Log Dirt Block",
-  "roaring_knight_iss.configuration.magicNumberIntroduction": "Magic Number Text",
-  "roaring_knight_iss.configuration.magicNumber": "Magic Number"
+  "roaring_knight_iss.configuration.section.roaring_knight_iss.common.toml.title": "The Roaring: Spellbooks Configs"
 }

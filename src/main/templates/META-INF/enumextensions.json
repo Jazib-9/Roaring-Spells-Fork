@@ -1,0 +1,19 @@
+{
+  "entries": [
+    {
+      //https://docs.neoforged.net/docs/advanced/extensibleenums/
+      // The enum class the entry should be added to
+      "enum": "net/minecraft/world/item/Rarity",
+      // The field name of the new entry, must be prefixed with the mod ID
+      "name": "ROARING_KNIGHT_ISS_RARITY_SHADED",
+      // The constructor to be used
+      //Lnet/minecraft/world/item/Rarity;<init>(ILjava/lang/String;Ljava/util/function/UnaryOperator;)V
+      "constructor": "(ILjava/lang/String;Ljava/util/function/UnaryOperator;)V",
+      // Constant parameters provided directly.
+      "parameters": {
+        "class": "net/acetheeldritchking/roaring_knight_iss/utils/RKRarities",
+        "field": "SHADED_RARITY_PROXY"
+      }
+    }
+  ]
+}

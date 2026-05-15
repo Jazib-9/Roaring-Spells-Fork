@@ -1,5 +1,11 @@
 package net.acetheeldritchking.roaring_knight_iss;
 
+import net.acetheeldritchking.roaring_knight_iss.registries.RKCreativeModeTabs;
+import net.acetheeldritchking.roaring_knight_iss.registries.RKEntityRegistry;
+import net.acetheeldritchking.roaring_knight_iss.registries.RKItemRegistry;
+import net.acetheeldritchking.roaring_knight_iss.registries.RKSoundEvents;
+import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -31,9 +37,9 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
-@Mod(TheRoaringSpellbooks.MODID)
+@Mod(TheRoaringSpellbooks.MOD_ID)
 public class TheRoaringSpellbooks {
-    public static final String MODID = "roaring_knight_iss";
+    public static final String MOD_ID = "roaring_knight_iss";
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public TheRoaringSpellbooks(IEventBus modEventBus, ModContainer modContainer) {
@@ -41,6 +47,19 @@ public class TheRoaringSpellbooks {
         modEventBus.addListener(this::commonSetup);
 
         NeoForge.EVENT_BUS.register(this);
+
+        // Creative Tab
+        RKCreativeModeTabs.register(modEventBus);
+        // Items
+        RKItemRegistry.register(modEventBus);
+        // Spells
+        // Effects
+        // Sounds
+        RKSoundEvents.register(modEventBus);
+        // Entities
+        RKEntityRegistry.register(modEventBus);
+        // Armor Materials
+        // Particles
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
         //modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
@@ -54,5 +73,10 @@ public class TheRoaringSpellbooks {
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
+    }
+
+    public static ResourceLocation id(@NotNull String path)
+    {
+        return ResourceLocation.fromNamespaceAndPath(TheRoaringSpellbooks.MOD_ID, path);
     }
 }
