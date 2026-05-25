@@ -32,6 +32,10 @@ public class RKCreativeModeTabs {
                         output.accept(RKItemRegistry.DARK_SABRE.get());
                         // Staves
                         // Armor
+                        output.accept(RKItemRegistry.ROARING_HARBINGER_HELMET.get());
+                        output.accept(RKItemRegistry.ROARING_HARBINGER_CHESTPLATE.get());
+                        output.accept(RKItemRegistry.ROARING_HARBINGER_LEGGINGS.get());
+                        output.accept(RKItemRegistry.ROARING_HARBINGER_BOOTS.get());
                         // Spawn Eggs
                         output.accept(RKItemRegistry.BLACK_EXECUTIONER_SPAWN_EGG.get());
 

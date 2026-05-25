@@ -6,9 +6,15 @@
   "block.roaring_knight_iss.example_block": "Example Block",
 
   "item.roaring_knight_iss.dark_sabre": "Dark Sabre",
-  "item.roaring_knight_iss.black_executioner_spawn_egg": "Black Executioner Spawn Egg",
 
-  "entity.roaring_knight_iss.black_executioner_shade": "The Black Executioner",
+  "item.roaring_knight_iss.roaring_harbinger_helmet": "Roaring Harbinger Visors",
+  "item.roaring_knight_iss.roaring_harbinger_chestplate": "Roaring Harbinger Chestplate",
+  "item.roaring_knight_iss.roaring_harbinger_leggings": "Roaring Harbinger Leggings",
+  "item.roaring_knight_iss.roaring_harbinger_boots": "Roaring Harbinger Greaves",
+
+  "item.roaring_knight_iss.black_executioner_spawn_egg": "The Roaring Harbinger Spawn Egg",
+
+  "entity.roaring_knight_iss.black_executioner_shade": "The Roaring Harbinger",
 
   "roaring_knight_iss.configuration.title": "The Roaring: Spellbooks Configs",
   "roaring_knight_iss.configuration.section.roaring_knight_iss.common.toml": "The Roaring: Spellbooks Configs",

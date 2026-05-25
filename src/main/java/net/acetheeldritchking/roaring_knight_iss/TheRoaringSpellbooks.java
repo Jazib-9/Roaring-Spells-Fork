@@ -1,5 +1,6 @@
 package net.acetheeldritchking.roaring_knight_iss;
 
+import net.acetheeldritchking.roaring_knight_iss.items.armor.RKArmorMaterialRegistry;
 import net.acetheeldritchking.roaring_knight_iss.registries.RKCreativeModeTabs;
 import net.acetheeldritchking.roaring_knight_iss.registries.RKEntityRegistry;
 import net.acetheeldritchking.roaring_knight_iss.registries.RKItemRegistry;
@@ -59,6 +60,7 @@ public class TheRoaringSpellbooks {
         // Entities
         RKEntityRegistry.register(modEventBus);
         // Armor Materials
+        RKArmorMaterialRegistry.register(modEventBus);
         // Particles
 
         // Register our mod's ModConfigSpec so that FML can create and load the config file for us
