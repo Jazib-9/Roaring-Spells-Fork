@@ -1,7 +1,10 @@
 package net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.goals;
 
+import io.redspace.ironsspellbooks.damage.ISSDamageTypes;
 import io.redspace.ironsspellbooks.entity.mobs.wizards.fire_boss.goals.AnimatedActionGoal;
+import net.acetheeldritchking.roaring_knight_iss.TheRoaringSpellbooks;
 import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.RoaringHarbingerBoss;
+import net.minecraft.world.damagesource.DamageSource;
 
 public class ExtremeSlashAbilityGoal extends AnimatedActionGoal<RoaringHarbingerBoss> {
     public ExtremeSlashAbilityGoal(RoaringHarbingerBoss mob) {
@@ -10,31 +13,45 @@ public class ExtremeSlashAbilityGoal extends AnimatedActionGoal<RoaringHarbinger
 
     @Override
     protected boolean canStartAction() {
-        return false;
+        // Do it if the mob is close to us, so we can get them out of our face
+        return mob.onGround() && mob.getTarget() != null && mob.distanceToSqr(mob.getTarget()) < 5 * 5;
     }
 
     @Override
     protected int getActionTimestamp() {
-        return 0;
+        return 23;
     }
 
     @Override
     protected int getActionDuration() {
-        return 0;
+        return 47;
     }
 
     @Override
     protected int getCooldown() {
-        return 0;
+        return 400;
     }
 
     @Override
     protected String getAnimationId() {
-        return "";
+        return "extreme_slash";
+    }
+
+    @Override
+    public void tick() {
+        if (abilityTimer <= 22)
+        {
+            this.mob.getNavigation().stop();
+            this.mob.lerpMotion(0, 0, 0);
+        }
+
+        super.tick();
     }
 
     @Override
     protected void doAction() {
+        TheRoaringSpellbooks.LOGGER.debug("GO INTO EXTREME SLASH GOAL");
 
+        mob.getTarget().hurt(new DamageSource(mob.level().damageSources().damageTypes.getHolderOrThrow(ISSDamageTypes.ELDRITCH_MAGIC), mob), 25);
     }
 }

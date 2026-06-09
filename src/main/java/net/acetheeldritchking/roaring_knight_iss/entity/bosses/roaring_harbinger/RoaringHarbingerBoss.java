@@ -19,6 +19,7 @@ import net.acetheeldritchking.aces_spell_utils.entity.mobs.goals.WizardSpellComb
 import net.acetheeldritchking.aces_spell_utils.registries.ASAttributeRegistry;
 import net.acetheeldritchking.aces_spell_utils.utils.boss_music.UniqueBossMusicManager;
 import net.acetheeldritchking.roaring_knight_iss.TheRoaringSpellbooks;
+import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.goals.ExtremeSlashAbilityGoal;
 import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.goals.RoaringHarbingerAttackGoal;
 import net.acetheeldritchking.roaring_knight_iss.registries.RKEntityRegistry;
 import net.acetheeldritchking.roaring_knight_iss.registries.RKSoundEvents;
@@ -259,6 +260,8 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
 
         this.goalSelector.addGoal(2, new SpellBarrageGoal(this, SpellRegistry.ELDRITCH_BLAST_SPELL.get(), 1, 3, 80, 150, 3));
         this.goalSelector.addGoal(4, new SpellBarrageGoal(this, SpellRegistry.TELEPORT_SPELL.get(), 1, 3, 80, 150, 3));
+
+        this.goalSelector.addGoal(3, new ExtremeSlashAbilityGoal(this));
 
         this.attackGoal = (RoaringHarbingerAttackGoal) new RoaringHarbingerAttackGoal(this, 1.5F, 25, 40)
                 .setMoveset(List.of(
