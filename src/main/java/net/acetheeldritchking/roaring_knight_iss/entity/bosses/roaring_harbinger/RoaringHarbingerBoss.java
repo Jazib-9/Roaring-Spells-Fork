@@ -8,12 +8,9 @@ import io.redspace.ironsspellbooks.entity.mobs.goals.MomentHurtByTargetGoal;
 import io.redspace.ironsspellbooks.entity.mobs.goals.PatrolNearLocationGoal;
 import io.redspace.ironsspellbooks.entity.mobs.goals.SpellBarrageGoal;
 import io.redspace.ironsspellbooks.entity.mobs.goals.melee.AttackAnimationData;
-import io.redspace.ironsspellbooks.entity.mobs.goals.melee.AttackKeyframe;
-import io.redspace.ironsspellbooks.entity.mobs.keeper.KeeperEntity;
 import io.redspace.ironsspellbooks.entity.mobs.wizards.fire_boss.ExtendedServerBossEvent;
 import io.redspace.ironsspellbooks.entity.mobs.wizards.fire_boss.FireBossEntity;
 import io.redspace.ironsspellbooks.entity.mobs.wizards.fire_boss.NotIdioticNavigation;
-import io.redspace.ironsspellbooks.entity.mobs.wizards.priest.PriestEntity;
 import io.redspace.ironsspellbooks.network.EntityEventPacket;
 import net.acetheeldritchking.aces_spell_utils.entity.mobs.GenericUniqueBossEntity;
 import net.acetheeldritchking.aces_spell_utils.entity.mobs.goals.WizardSpellComboGoal;
@@ -164,10 +161,6 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
             {
                 BossbarManager.startTracking(this.uuid, BOSSBAR_SPRITE);
                 UniqueBossMusicManager.createOrResumeInstance(this);
-                /*if (!isSpawning())
-                {
-                    BossMusicManager.createOrResumeInstance(this);
-                }*/
             }
             case START_MUSIC -> UniqueBossMusicManager.createOrResumeInstance(this);
             case STOP_MUSIC -> UniqueBossMusicManager.stop(this);
@@ -453,7 +446,7 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
 
     protected void createBossEvent()
     {
-        this.bossEvent = (ExtendedServerBossEvent) (new ExtendedServerBossEvent(this.getUUID(), this.getDisplayName().copy().withStyle(ChatFormatting.DARK_AQUA/*, ChatFormatting.BOLD*/), BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS)).setCreateWorldFog(false);
+        this.bossEvent = (ExtendedServerBossEvent) (new ExtendedServerBossEvent(this.getUUID(), this.getDisplayName().copy().withStyle(ChatFormatting.WHITE/*, ChatFormatting.BOLD*/), BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS)).setCreateWorldFog(false);
     }
 
     @Override
