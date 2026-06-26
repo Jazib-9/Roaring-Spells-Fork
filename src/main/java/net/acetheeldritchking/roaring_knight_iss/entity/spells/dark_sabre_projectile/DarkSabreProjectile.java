@@ -40,6 +40,13 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
         this(RKEntityRegistry.DARK_SABRE_PROJECTILE.get(), pLevel);
     }
 
+    // new constructor for "surround" mode
+    public DarkSabreProjectile(EntityType<? extends Projectile> pEntityType, Level pLevel, AttackMode mode, double ringAngleOffset) {
+        this(pEntityType, pLevel);
+        this.mode = mode;
+        this.ringAngleOffset = ringAngleOffset;
+    }
+
     public int delay;
     public @Nullable Vec3 ownerTracking = null;
     public @Nullable UUID targetEntity = null;
@@ -108,6 +115,13 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
         return 2.5F;
     }
 
+    public enum AttackMode {
+        NORMAL, SURROUND, SPREAD
+    }
+
+    public AttackMode mode = AttackMode.NORMAL; // current default fallback
+    public double ringAngleOffset;
+
     @Override
     public void tick() {
         if (age++ < delay)
@@ -173,30 +187,35 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
     protected void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("delay", delay);
-        if (ownerTracking != null)
-        {
+        if (ownerTracking != null) {
             tag.put("ownerTracking", NBT.writeVec3Pos(ownerTracking));
         }
-        if (targetEntity != null)
-        {
+        if (targetEntity != null) {
             tag.putUUID("target", targetEntity);
         }
         tag.putInt("Age", age);
+
+        //storing angleOffset and  mode data, since we cant store enums as nbt,
+        // convert to string than retrieve via readAdditionalSaveData()
+        tag.putString("Mode", mode.name());
+        tag.putDouble("RingAngleOffset", ringAngleOffset);
     }
 
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         this.delay = tag.getInt("delay");
-        if (tag.hasUUID("ownerTracking"))
-        {
+        if (tag.hasUUID("ownerTracking")) {
             this.ownerTracking = NBT.readVec3(tag.getCompound("ownerTracking"));
         }
-        if (tag.hasUUID("target"))
-        {
+        if (tag.hasUUID("target")) {
             this.targetEntity = tag.getUUID("target");
         }
         this.age = tag.getInt("Age");
+        if (tag.contains("Mode")) {
+            this.mode = AttackMode.valueOf(tag.getString("Mode"));
+        }
+        this.ringAngleOffset = tag.getDouble("RingAngleOffset");
     }
 
     @Override
@@ -214,6 +233,8 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
         if (target) {
             buffer.writeInt(cachedTarget.getId());
         }
+        buffer.writeEnum(this.mode);
+        buffer.writeDouble(this.ringAngleOffset);
     }
 
     @Override
@@ -228,5 +249,7 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
                 this.targetEntity = cachedTarget.getUUID();
             }
         }
+        this.mode = buffer.readEnum(AttackMode.class);
+        this.ringAngleOffset = buffer.readDouble();
     }
 }
