@@ -40,6 +40,20 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
         this(RKEntityRegistry.DARK_SABRE_PROJECTILE.get(), pLevel);
     }
 
+    // new constructor for "surround" mode
+    public DarkSabreProjectile(EntityType<? extends Projectile> pEntityType, Level pLevel, AttackMode mode, double ringAngleOffset) {
+        this(pEntityType, pLevel);
+        this.mode = mode;
+        this.ringAngleOffset = ringAngleOffset;
+    }
+
+    // new constructor for "spread" mode
+    public DarkSabreProjectile(EntityType<? extends Projectile> pEntityType, Level pLevel, AttackMode mode, Vec3 sphereOffset) {
+        this(pEntityType, pLevel);
+        this.mode = mode;
+        this.sphereOffset = sphereOffset;
+    }
+
     public int delay;
     public @Nullable Vec3 ownerTracking = null;
     public @Nullable UUID targetEntity = null;
@@ -108,45 +122,120 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
         return 2.5F;
     }
 
+    public enum AttackMode {
+        NORMAL, SURROUND, SPREAD
+    }
+
+    /*
+    not really sure what NORMAL does it might not do anything right now
+     */
+    public AttackMode mode = AttackMode.NORMAL; // current default fallback
+    public double ringAngleOffset; // SURROUND only: fixed angle slice around the ring
+    public Vec3 sphereOffset = Vec3.ZERO; // SPREAD only: fixed offset on the Fibonacci sphere
+
     @Override
     public void tick() {
         if (age++ < delay)
         {
-            var owner = getOwner();
-            float strength = 0.75F;
-
-            if (owner != null && isTrackingOwner())
-            {
-                Vec3 ownerMotion = owner.position().subtract(owner.xOld, owner.yOld, owner.zOld);
-                setPos(this.position().add(ownerMotion));
-            }
-
-            var target = getTargetEntity();
-            if (target != null)
-            {
-                var targetPos = target.getBoundingBox().getCenter();
-                Vec3 targetMotion = targetPos.subtract(this.position()).normalize().scale(this.getSpeed());
-                Vec3 currentMotion = getDeltaMovement();
-                deltaMovementOld = currentMotion;
-                this.setDeltaMovement(currentMotion.add(targetMotion.subtract(currentMotion).scale(strength)));
-                if (tickCount == 1)
-                {
-                    deltaMovementOld = getDeltaMovement();
-                }
-            }
-            if (age == delay)
-            {
-                var hits = level().getEntities(this, this.getBoundingBox().inflate(0.4F), this::canHitEntity);
-                EntityHitResult hitResult = hits.isEmpty() ? null : new EntityHitResult(hits.getFirst());
-                if (hitResult != null)
-                {
-                    onHit(hitResult);
-                }
+            switch (mode) {
+                case NORMAL -> tickNormalMode();
+                case SURROUND -> tickSurroundMode();
+                case SPREAD -> tickSpreadMode();
             }
         } else
         {
             super.tick();
         }
+    }
+
+    /*
+    moved the original contents/logic from inside tick() to its own dedicated method
+     */
+    private void tickNormalMode() {
+        var owner = getOwner();
+        float strength = 0.75F;
+
+        if (owner != null && isTrackingOwner())
+        {
+            Vec3 ownerMotion = owner.position().subtract(owner.xOld, owner.yOld, owner.zOld);
+            setPos(this.position().add(ownerMotion));
+        }
+
+        var target = getTargetEntity();
+        if (target != null)
+        {
+            var targetPos = target.getBoundingBox().getCenter();
+            Vec3 targetMotion = targetPos.subtract(this.position()).normalize().scale(this.getSpeed());
+            Vec3 currentMotion = getDeltaMovement();
+            deltaMovementOld = currentMotion;
+            this.setDeltaMovement(currentMotion.add(targetMotion.subtract(currentMotion).scale(strength)));
+            if (tickCount == 1)
+            {
+                deltaMovementOld = getDeltaMovement();
+            }
+        }
+        if (age == delay)
+        {
+            var hits = level().getEntities(this, this.getBoundingBox().inflate(0.4F), this::canHitEntity);
+            EntityHitResult hitResult = hits.isEmpty() ? null : new EntityHitResult(hits.getFirst());
+            if (hitResult != null)
+            {
+                onHit(hitResult);
+            }
+        }
+    }
+
+    private void tickSurroundMode() {
+        var target = getTargetEntity();
+        if (target == null) {
+            return;
+        }
+
+        if (age == delay) {
+            // transition: strike toward the target this tick instead of running
+            // the immediate near-collision check (entity is ~2 blocks out, so
+            // that check would never find anything here)
+            Vec3 targetPos = target.getBoundingBox().getCenter();
+            Vec3 strikeMotion = targetPos.subtract(this.position()).normalize().scale(this.getSpeed());
+            this.setDeltaMovement(strikeMotion);
+            this.deltaMovementOld = strikeMotion;
+            return;
+        }
+
+        double radius = 2.0;
+        double rotationSpeed = 0.05;
+        double currentAngle = ringAngleOffset + (age * rotationSpeed);
+
+        double x = target.getX() + Math.cos(currentAngle) * radius;
+        double y = target.getY() + (target.getEyeHeight() * 0.5);
+        double z = target.getZ() + Math.sin(currentAngle) * radius;
+
+        setPos(x, y, z);
+        setDeltaMovement(Vec3.ZERO);
+    }
+
+    // holds position relative to its fixed point on the sphere (recomputed each
+    // tick from the target's current position, so the sphere "follows" a moving
+    // target without the points themselves changing), then strikes at age == delay
+    private void tickSpreadMode() {
+        var target = getTargetEntity();
+        if (target == null)
+        {
+            return;
+        }
+
+        if (age == delay)
+        {
+            Vec3 targetPos = target.getBoundingBox().getCenter();
+            Vec3 strikeMotion = targetPos.subtract(this.position()).normalize().scale(this.getSpeed());
+            this.setDeltaMovement(strikeMotion);
+            this.deltaMovementOld = strikeMotion;
+            return;
+        }
+
+        Vec3 spherePoint = target.getBoundingBox().getCenter().add(sphereOffset);
+        setPos(spherePoint.x, spherePoint.y, spherePoint.z);
+        setDeltaMovement(Vec3.ZERO);
     }
 
     @Override
@@ -173,30 +262,43 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
     protected void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("delay", delay);
-        if (ownerTracking != null)
-        {
+        if (ownerTracking != null) {
             tag.put("ownerTracking", NBT.writeVec3Pos(ownerTracking));
         }
-        if (targetEntity != null)
-        {
+        if (targetEntity != null) {
             tag.putUUID("target", targetEntity);
         }
         tag.putInt("Age", age);
+
+        //storing angleOffset and  mode data, since we cant store enums as nbt,
+        // convert to string than retrieve via readAdditionalSaveData()
+        tag.putString("Mode", mode.name());
+        tag.putDouble("RingAngleOffset", ringAngleOffset);
+        tag.put("SphereOffset", NBT.writeVec3Pos(sphereOffset));
     }
 
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
         super.readAdditionalSaveData(tag);
         this.delay = tag.getInt("delay");
-        if (tag.hasUUID("ownerTracking"))
-        {
+
+        //TODO might want to switch tag.hasUUID() to tag.contains() since above we do
+        //TODO tag.put("ownerTracking", NBT.writeVec3Pos(ownerTracking));
+        //TODO but I'm not entirely sure if this is a problem or not
+        if (tag.hasUUID("ownerTracking")) {
             this.ownerTracking = NBT.readVec3(tag.getCompound("ownerTracking"));
         }
-        if (tag.hasUUID("target"))
-        {
+        if (tag.hasUUID("target")) {
             this.targetEntity = tag.getUUID("target");
         }
         this.age = tag.getInt("Age");
+        if (tag.contains("Mode")) {
+            this.mode = AttackMode.valueOf(tag.getString("Mode"));
+        }
+        this.ringAngleOffset = tag.getDouble("RingAngleOffset");
+        if (tag.contains("SphereOffset")) {
+            this.sphereOffset = NBT.readVec3(tag.getCompound("SphereOffset"));
+        }
     }
 
     @Override
@@ -214,6 +316,11 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
         if (target) {
             buffer.writeInt(cachedTarget.getId());
         }
+        buffer.writeEnum(this.mode);
+        buffer.writeDouble(this.ringAngleOffset);
+        buffer.writeDouble(this.sphereOffset.x);
+        buffer.writeDouble(this.sphereOffset.y);
+        buffer.writeDouble(this.sphereOffset.z);
     }
 
     @Override
@@ -227,6 +334,74 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
             if (this.cachedTarget != null) {
                 this.targetEntity = cachedTarget.getUUID();
             }
+        }
+        this.mode = buffer.readEnum(AttackMode.class);
+        this.ringAngleOffset = buffer.readDouble();
+        this.sphereOffset = new Vec3(buffer.readDouble(), buffer.readDouble(), buffer.readDouble());
+    }
+
+    /*
+    Spawn-site helpers - not yet wired into the boss AI / spell cast path.
+    Both assume "delay" is in ticks
+    */
+    public static void spawnSurroundGroup(Level level, Entity target, Entity owner) {
+        int count = 5;
+        double radius = 2.0;
+        int delayTicks = 100; // 5 seconds
+
+        for (int i = 0; i < count; i++) {
+            double angle = (2 * Math.PI / count) * i;
+
+            DarkSabreProjectile projectile = new DarkSabreProjectile(
+                    RKEntityRegistry.DARK_SABRE_PROJECTILE.get(),
+                    level,
+                    AttackMode.SURROUND,
+                    angle
+            );
+            projectile.setOwner(owner);
+            projectile.setTarget(target);
+            projectile.delay = delayTicks;
+
+            double spawnX = target.getX() + Math.cos(angle) * radius;
+            double spawnY = target.getY() + (target.getEyeHeight() * 0.5);
+            double spawnZ = target.getZ() + Math.sin(angle) * radius;
+            projectile.setPos(spawnX, spawnY, spawnZ);
+
+            level.addFreshEntity(projectile);
+        }
+    }
+
+    // spawn in a sphere, then fire, no timing given
+    public static void spawnSpreadGroup(Level level, Entity target, Entity owner) {
+        int count = 8;
+        double radius = 2.5;
+        int delayTicks = 100;
+
+        for (int i = 0; i < count; i++) {
+            // Fibonacci sphere distribution
+            double y = 1 - (i / (double) (count - 1)) * 2; // from 1 to -1
+            double radiusAtY = Math.sqrt(1 - y * y);
+            double goldenAngle = Math.PI * (3 - Math.sqrt(5));
+            double theta = goldenAngle * i;
+            double x = Math.cos(theta) * radiusAtY;
+            double z = Math.sin(theta) * radiusAtY;
+
+            Vec3 offset = new Vec3(x * radius, y * radius, z * radius);
+
+            DarkSabreProjectile projectile = new DarkSabreProjectile(
+                    RKEntityRegistry.DARK_SABRE_PROJECTILE.get(),
+                    level,
+                    AttackMode.SPREAD,
+                    offset
+            );
+            projectile.setOwner(owner);
+            projectile.setTarget(target);
+            projectile.delay = delayTicks;
+
+            Vec3 spawnPos = target.getBoundingBox().getCenter().add(offset);
+            projectile.setPos(spawnPos.x, spawnPos.y, spawnPos.z);
+
+            level.addFreshEntity(projectile);
         }
     }
 }
