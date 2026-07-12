@@ -19,6 +19,7 @@ import net.acetheeldritchking.aces_spell_utils.utils.boss_music.UniqueBossMusicM
 import net.acetheeldritchking.roaring_knight_iss.TheRoaringSpellbooks;
 import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.goals.ExtremeSlashAbilityGoal;
 import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.goals.RoaringHarbingerAttackGoal;
+import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.goals.SwordSurroundGoal;
 import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.keyframes.RedCleaveKeyFrame;
 import net.acetheeldritchking.roaring_knight_iss.registries.RKEntityRegistry;
 import net.acetheeldritchking.roaring_knight_iss.registries.RKSoundEvents;
@@ -251,6 +252,86 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
         this.goalSelector.addGoal(4, new SpellBarrageGoal(this, SpellRegistry.TELEPORT_SPELL.get(), 1, 3, 80, 150, 3));
 
         this.goalSelector.addGoal(2, new ExtremeSlashAbilityGoal(this));
+        this.goalSelector.addGoal(2, new SwordSurroundGoal(this));
+
+        this.attackGoal = (RoaringHarbingerAttackGoal) new RoaringHarbingerAttackGoal(this, 1.5F, 25, 40)
+                .setMoveset(List.of(
+                        new AttackAnimationData(42, "slash_1", 22),
+                        new AttackAnimationData(51, "slash_2", 26),
+                        AttackAnimationData.builder("consecutive_slash")
+                                .length(120)
+                                .area(0.25f)
+                                .rangeMultiplier(4.5f)
+                                .attacks(
+                                        new RedCleaveKeyFrame(28, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, false)),
+                                        new RedCleaveKeyFrame(33, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, true)),
+                                        new RedCleaveKeyFrame(35, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, false)),
+                                        new RedCleaveKeyFrame(41, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, true)),
+                                        new RedCleaveKeyFrame(45, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, false)),
+                                        new RedCleaveKeyFrame(50, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, true)),
+                                        new RedCleaveKeyFrame(52, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, false)),
+                                        new RedCleaveKeyFrame(57, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, true)),
+                                        new RedCleaveKeyFrame(60, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, false)),
+                                        new RedCleaveKeyFrame(65, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, true)),
+                                        new RedCleaveKeyFrame(68, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, false)),
+                                        new RedCleaveKeyFrame(74, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, true)),
+                                        new RedCleaveKeyFrame(77, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, false)),
+                                        new RedCleaveKeyFrame(82, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, true)),
+                                        new RedCleaveKeyFrame(85, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, false))
+                                ).build()
+                ))
+                .setComboChance(0.8F)
+                .setMeleeAttackInverval(45, 55)
+                .setMeleeMovespeedModifier(1.5F)
+                .setMeleeBias(0.75f, 1.0f)
+                .setIsFlying()
+                .setSpells(
+                        // Attack
+                        List.of(
+                                SpellRegistry.MAGIC_MISSILE_SPELL.get()
+                        ),
+                        // Defense
+                        List.of(
+                                SpellRegistry.COUNTERSPELL_SPELL.get(),
+                                SpellRegistry.ABYSSAL_SHROUD_SPELL.get()
+                        ),
+                        // Movement
+                        List.of(
+                                SpellRegistry.TELEPORT_SPELL.get()
+                        ),
+                        // Support
+                        List.of(
+                                SpellRegistry.COUNTERSPELL_SPELL.get()
+                        )
+                ).setSingleUseSpell(SpellRegistry.SONIC_BOOM_SPELL.get(), 70, 100, 3, 5)
+                .setSpellQuality(1.0f, 1.0f);
+
+        this.goalSelector.addGoal(3, attackGoal);
+
+        // Defensive combo
+        this.goalSelector.addGoal(3, new WizardSpellComboGoal(this,
+                List.of(
+                        SpellRegistry.TELEPORT_SPELL.get(),
+                        SpellRegistry.COUNTERSPELL_SPELL.get(),
+                        SpellRegistry.ABYSSAL_SHROUD_SPELL.get()
+                ), 1.3f, 1.3f, 80, 150));
+
+        this.goalSelector.addGoal(5, new PatrolNearLocationGoal(this, 32.0F, 0.9));
+        this.goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 8.0F));
+    }
+
+    // Second/Final Phase
+    private void secondPhaseGoals()
+    {
+        this.goalSelector.getAvailableGoals().forEach(WrappedGoal::stop);
+        this.goalSelector.removeAllGoals((x) -> true);
+
+        this.goalSelector.addGoal(1, new FloatGoal(this));
+
+        this.goalSelector.addGoal(2, new SpellBarrageGoal(this, SpellRegistry.ELDRITCH_BLAST_SPELL.get(), 1, 3, 80, 150, 3));
+        this.goalSelector.addGoal(4, new SpellBarrageGoal(this, SpellRegistry.TELEPORT_SPELL.get(), 1, 3, 80, 150, 3));
+
+        this.goalSelector.addGoal(2, new ExtremeSlashAbilityGoal(this));
 
         this.attackGoal = (RoaringHarbingerAttackGoal) new RoaringHarbingerAttackGoal(this, 1.5F, 25, 40)
                 .setMoveset(List.of(
@@ -315,6 +396,20 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
 
         this.goalSelector.addGoal(5, new PatrolNearLocationGoal(this, 32.0F, 0.9));
         this.goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 8.0F));
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+
+        // These are used for getting health; very handy for doing phases based on health
+        float health = this.getHealth();
+        float MAX_HEALTH = this.getMaxHealth();
+
+        float halfHealth = MAX_HEALTH/2;
+
+        // Same as what Tyros has
+        this.bossEvent.setProgress(health / MAX_HEALTH);
     }
 
     @Override

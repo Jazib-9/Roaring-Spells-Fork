@@ -10,6 +10,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -108,8 +109,8 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
     @Override
     protected void onHitEntity(@NotNull EntityHitResult result) {
         super.onHitEntity(result);
-        result.getEntity().hurt(new DamageSource(level().damageSources().damageTypes.getHolderOrThrow(ISSDamageTypes.ELDRITCH_MAGIC), this, getOwner()), getDamage());
         result.getEntity().invulnerableTime = 0;
+        result.getEntity().hurt(new DamageSource(level().damageSources().damageTypes.getHolderOrThrow(DamageTypes.MAGIC), this, getOwner()), getDamage());
     }
 
     @Override
@@ -349,7 +350,7 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
     Spawn-site helpers - not yet wired into the boss AI / spell cast path.
     Both assume "delay" is in ticks
     */
-    public static void spawnSurroundGroup(Level level, Entity target, Entity owner, int count, double radius, int delayTicks, float speed) {
+    public static void spawnSurroundGroup(Level level, Entity target, Entity owner, int count, double radius, int delayTicks, float speed, float damage) {
         //int count = 5;
         //double radius = 2.0;
         //int delayTicks = 100; // 5 seconds
@@ -366,6 +367,7 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
             projectile.setOwner(owner);
             projectile.setSpeed(speed);
             projectile.setTarget(target);
+            projectile.setDamage(damage);
             projectile.delay = delayTicks;
 
             double spawnX = target.getX() + Math.cos(angle) * radius;
@@ -378,7 +380,7 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
     }
 
     // spawn in a sphere, then fire, no timing given
-    public static void spawnSpreadGroup(Level level, Entity target, Entity owner, int count, double radius, int delayTicks, float speed) {
+    public static void spawnSpreadGroup(Level level, Entity target, Entity owner, int count, double radius, int delayTicks, float speed, float damage) {
         //int count = 8;
         //double radius = 2.5;
         //int delayTicks = 100;
@@ -403,6 +405,7 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
             projectile.setOwner(owner);
             projectile.setSpeed(speed);
             projectile.setTarget(target);
+            projectile.setDamage(damage);
             projectile.delay = delayTicks;
 
             Vec3 spawnPos = target.getBoundingBox().getCenter().add(offset);
