@@ -59,6 +59,7 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
     public @Nullable UUID targetEntity = null;
     public @Nullable Entity cachedTarget = null;
     int age;
+    float speed;
 
     public void setTarget(Entity target)
     {
@@ -119,7 +120,11 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
 
     @Override
     public float getSpeed() {
-        return 2.5F;
+        return speed;
+    }
+
+    public float setSpeed(float speed) {
+        return this.speed = speed;
     }
 
     public enum AttackMode {
@@ -344,7 +349,7 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
     Spawn-site helpers - not yet wired into the boss AI / spell cast path.
     Both assume "delay" is in ticks
     */
-    public static void spawnSurroundGroup(Level level, Entity target, Entity owner, int count, double radius, int delayTicks) {
+    public static void spawnSurroundGroup(Level level, Entity target, Entity owner, int count, double radius, int delayTicks, float speed) {
         //int count = 5;
         //double radius = 2.0;
         //int delayTicks = 100; // 5 seconds
@@ -359,6 +364,7 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
                     angle
             );
             projectile.setOwner(owner);
+            projectile.setSpeed(speed);
             projectile.setTarget(target);
             projectile.delay = delayTicks;
 
@@ -372,7 +378,7 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
     }
 
     // spawn in a sphere, then fire, no timing given
-    public static void spawnSpreadGroup(Level level, Entity target, Entity owner, int count, double radius, int delayTicks) {
+    public static void spawnSpreadGroup(Level level, Entity target, Entity owner, int count, double radius, int delayTicks, float speed) {
         //int count = 8;
         //double radius = 2.5;
         //int delayTicks = 100;
@@ -395,6 +401,7 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
                     offset
             );
             projectile.setOwner(owner);
+            projectile.setSpeed(speed);
             projectile.setTarget(target);
             projectile.delay = delayTicks;
 
