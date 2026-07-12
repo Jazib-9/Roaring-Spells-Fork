@@ -79,29 +79,11 @@ public class ExtremeSlashAbilityGoal extends AnimatedActionGoal<RoaringHarbinger
     protected void doAction() {
         TheRoaringSpellbooks.LOGGER.debug("GO INTO EXTREME SLASH GOAL");
 
-        float radius = 15.25f;
+        float radius = 10.25f;
 
         mob.playSound(SoundRegistry.DIVINE_SMITE_CAST.get(), 2.5f, Utils.random.nextIntBetweenInclusive(80, 110) * .01f);
-        //mob.getTarget().hurt(new DamageSource(mob.level().damageSources().damageTypes.getHolderOrThrow(ISSDamageTypes.ELDRITCH_MAGIC), mob), 125);
 
-        /*Vec3 forward = mob.getForward();
-        Vec3 hitLocation = mob.position().add(0, mob.getBbHeight() * .3f, 0).add(forward.scale(distance));
-
-        var entities = mob.level().getEntities(mob, AABB.ofSize(hitLocation, radius * 2, radius, radius * 2));
-
-        for (Entity targetEntity : entities) {
-            if (targetEntity instanceof LivingEntity && targetEntity.isAlive() && mob.isPickable() && targetEntity.position().subtract(mob.getEyePosition()).dot(forward) >= 0 && mob.distanceToSqr(targetEntity) < radius * radius && Utils.hasLineOfSight(mob.level(), mob.getEyePosition(), targetEntity.getBoundingBox().getCenter(), true)) {
-                Vec3 offsetVector = targetEntity.getBoundingBox().getCenter().subtract(mob.getEyePosition());
-                if (offsetVector.dot(forward) >= 0) {
-                    var damageSource = new DamageSource(DamageSources.getHolderFromResource(targetEntity, DamageTypes.MAGIC), mob);
-                    if (DamageSources.applyDamage(targetEntity, 125, damageSource)) {
-                        MagicManager.spawnParticles(mob.level(), ParticleHelper.BLOOD, targetEntity.getX(), targetEntity.getY() + targetEntity.getBbHeight() * .5f, targetEntity.getZ(), 30, targetEntity.getBbWidth() * .5f, targetEntity.getBbHeight() * .5f, targetEntity.getBbWidth() * .5f, .03, false);
-                    }
-                }
-            }
-        }*/
-
-        List<LivingEntity> entitiesNearby = mob.level().getEntitiesOfClass(LivingEntity.class, mob.getBoundingBox().inflate(radius));
+        List<LivingEntity> entitiesNearby = mob.level().getEntitiesOfClass(LivingEntity.class, mob.getBoundingBox().inflate(radius * 2));
 
         for (LivingEntity targets : entitiesNearby)
         {

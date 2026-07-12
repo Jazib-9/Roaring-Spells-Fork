@@ -7,14 +7,14 @@ import net.acetheeldritchking.roaring_knight_iss.TheRoaringSpellbooks;
 import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.RoaringHarbingerBoss;
 import net.acetheeldritchking.roaring_knight_iss.entity.spells.dark_sabre_projectile.DarkSabreProjectile;
 
-public class SwordSurroundGoal extends AnimatedActionGoal<RoaringHarbingerBoss> {
-    public SwordSurroundGoal(RoaringHarbingerBoss mob) {
+public class SwordSurroundAbilityGoal extends AnimatedActionGoal<RoaringHarbingerBoss> {
+    public SwordSurroundAbilityGoal(RoaringHarbingerBoss mob) {
         super(mob);
     }
 
     @Override
     protected boolean canStartAction() {
-        return mob.getTarget() != null && mob.distanceToSqr(mob.getTarget()) > 7 * 7;
+        return mob.getTarget() != null && mob.distanceToSqr(mob.getTarget()) > 4 * 4;
     }
 
     @Override

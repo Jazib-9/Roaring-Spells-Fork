@@ -1,5 +1,6 @@
 package net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger;
 
+import io.redspace.ironsspellbooks.IronsSpellbooks;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.util.BossbarManager;
@@ -19,7 +20,8 @@ import net.acetheeldritchking.aces_spell_utils.utils.boss_music.UniqueBossMusicM
 import net.acetheeldritchking.roaring_knight_iss.TheRoaringSpellbooks;
 import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.goals.ExtremeSlashAbilityGoal;
 import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.goals.RoaringHarbingerAttackGoal;
-import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.goals.SwordSurroundGoal;
+import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.goals.SwordSpreadAbilityGoal;
+import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.goals.SwordSurroundAbilityGoal;
 import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.keyframes.RedCleaveKeyFrame;
 import net.acetheeldritchking.roaring_knight_iss.registries.RKEntityRegistry;
 import net.acetheeldritchking.roaring_knight_iss.registries.RKSoundEvents;
@@ -31,11 +33,11 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.BossEvent;
+import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.LookControl;
@@ -47,8 +49,10 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -74,11 +78,11 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
     // These are used for doing boss bars, setting up the phase serializer for NBT, and stopping and starting music
     private ExtendedServerBossEvent bossEvent;
     private final static EntityDataAccessor<Integer> PHASE = SynchedEntityData.defineId(RoaringHarbingerBoss.class, EntityDataSerializers.INT);
-    private final static EntityDataAccessor<Integer> RAGE_METER = SynchedEntityData.defineId(RoaringHarbingerBoss.class, EntityDataSerializers.INT);
-    private final static EntityDataAccessor<Boolean> ENRAGED = SynchedEntityData.defineId(RoaringHarbingerBoss.class, EntityDataSerializers.BOOLEAN);
-    private final static EntityDataAccessor<Boolean> TORMENT_MODE = SynchedEntityData.defineId(RoaringHarbingerBoss.class, EntityDataSerializers.BOOLEAN);
+    private final static EntityDataAccessor<Boolean> IS_TITAN = SynchedEntityData.defineId(RoaringHarbingerBoss.class, EntityDataSerializers.BOOLEAN);
     public static final byte CLIENT_STOP_TRACKING = 0;
     public static final byte CLIENT_START_TRACKING = 1;
+    public static final byte PROC_ROARING_TIMER = 2;
+    public static final byte STOP_ROARING_TIMER = 3;
     public static final byte START_MUSIC = 4;
     public static final byte STOP_MUSIC = 5;
 
@@ -93,10 +97,13 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
     int spawnTimer;
     private static final int spawnAnimTime = (int) (7.59 * 20);
     private static final int spawnDelay = 20;
-    // The amount of time it takes to build up rage again
-    int rageTime;
-    int rageCooldown;
-    public float animDampener;
+
+    // Roaring Ability
+    boolean hasRoared;
+    protected int roaringTimer;
+    protected static final int ROARING_ANIM_DURATION = 20;
+    protected static final int ROARING_STAR_SHOOT_DURATION = 20;
+    protected static final int ROARING_FINAL_STAR_DURATION = 20;
 
     // Loot
     SimpleContainer deathLoot = null;
@@ -106,6 +113,9 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
     private int stuckDetectorDelay;
     private int stuckDetector;
     private Vec3 lastStuck = Vec3.ZERO;
+
+    // Difficulty & Loot
+    private int playerScale;
 
     // Music
     @Override
@@ -162,6 +172,11 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
             {
                 BossbarManager.startTracking(this.uuid, BOSSBAR_SPRITE);
                 UniqueBossMusicManager.createOrResumeInstance(this);
+            }
+            case PROC_ROARING_TIMER -> this.roaringTimer = ROARING_ANIM_DURATION;
+            case STOP_ROARING_TIMER -> {
+                this.roaringTimer = 0;
+                this.playAnimation("idle");
             }
             case START_MUSIC -> UniqueBossMusicManager.createOrResumeInstance(this);
             case STOP_MUSIC -> UniqueBossMusicManager.stop(this);
@@ -248,11 +263,12 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
 
         this.goalSelector.addGoal(1, new FloatGoal(this));
 
-        this.goalSelector.addGoal(2, new SpellBarrageGoal(this, SpellRegistry.ELDRITCH_BLAST_SPELL.get(), 1, 3, 80, 150, 3));
-        this.goalSelector.addGoal(4, new SpellBarrageGoal(this, SpellRegistry.TELEPORT_SPELL.get(), 1, 3, 80, 150, 3));
+        this.goalSelector.addGoal(4, new SpellBarrageGoal(this, SpellRegistry.ELDRITCH_BLAST_SPELL.get(), 1, 3, 80, 150, 3));
+        this.goalSelector.addGoal(3, new SpellBarrageGoal(this, SpellRegistry.TELEPORT_SPELL.get(), 1, 3, 80, 150, 3));
 
         this.goalSelector.addGoal(2, new ExtremeSlashAbilityGoal(this));
-        this.goalSelector.addGoal(2, new SwordSurroundGoal(this));
+        this.goalSelector.addGoal(2, new SwordSurroundAbilityGoal(this));
+        this.goalSelector.addGoal(2, new SwordSpreadAbilityGoal(this));
 
         this.attackGoal = (RoaringHarbingerAttackGoal) new RoaringHarbingerAttackGoal(this, 1.5F, 25, 40)
                 .setMoveset(List.of(
@@ -398,6 +414,28 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
         this.goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 8.0F));
     }
 
+    public void triggerHalfHealthRoaring()
+    {
+        hasRoared = true;
+        roaringTimer = ROARING_ANIM_DURATION;
+        this.castComplete();
+        this.attackGoal.stopMeleeAction();
+        this.attackGoal.roaringStarCooldown = 400;
+        this.serverTriggerEvent(PROC_ROARING_TIMER);
+        this.serverTriggerAnimation("roaring");
+    }
+
+    public void stopHalfHealthRoaring()
+    {
+        roaringTimer = 0;
+        this.serverTriggerEvent(STOP_ROARING_TIMER);
+    }
+
+    public boolean isRoaring()
+    {
+        return roaringTimer > 0;
+    }
+
     @Override
     public void tick() {
         super.tick();
@@ -410,6 +448,11 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
 
         // Same as what Tyros has
         this.bossEvent.setProgress(health / MAX_HEALTH);
+    }
+
+    @Override
+    protected boolean isImmobile() {
+        return super.isImmobile() || isRoaring();
     }
 
     @Override
@@ -436,6 +479,27 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
         else {
             super.kill();
         }
+    }
+
+    @Override
+    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, MobSpawnType spawnType, @Nullable SpawnGroupData spawnGroupData) {
+        super.finalizeSpawn(level, difficulty, spawnType, spawnGroupData);
+
+        // Up the difficulty based on players around the boss
+        // Fuck the players, maaan
+        List<? extends Player> nearbyPlayers = level.players().stream()
+                .filter(player -> distanceToSqr(player) < 3600 && !player.isSpectator() && !player.isCreative())
+                .toList();
+        this.playerScale = nearbyPlayers.size();
+        int extraPlayers = Math.max(0, playerScale - 1);
+        double bonusHealthPerPlayer = extraPlayers * 0.4 + extraPlayers * extraPlayers * 0.10;
+
+        if (bonusHealthPerPlayer != 0)
+        {
+            this.getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier(TheRoaringSpellbooks.id("player_scale"), bonusHealthPerPlayer, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL));
+        }
+        this.setHealth(this.getMaxHealth());
+        return spawnGroupData;
     }
 
     // Creates the entity attributes for the boss
@@ -471,21 +535,21 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
         return this.entityData.get(PHASE);
     }
 
+    // Titan Mode
+    public boolean isTitan() {
+        return entityData.get(IS_TITAN);
+    }
+
+    public void setTitan(boolean titan) {
+        entityData.set(IS_TITAN, titan);
+    }
+
     // NBT
     @Override
     public void addAdditionalSaveData(CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
         // Phases
         pCompound.putInt("phase", getPhase());
-
-        if (rageTime > 0)
-        {
-            pCompound.putInt("rage_timer", rageTime);
-        }
-        if (rageCooldown > 0)
-        {
-            pCompound.putInt("rage_cooldown", rageCooldown);
-        }
     }
 
     @Override
@@ -525,9 +589,7 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
     protected void defineSynchedData(SynchedEntityData.Builder pBuilder) {
         super.defineSynchedData(pBuilder);
         pBuilder.define(PHASE, 0);
-        pBuilder.define(ENRAGED, false);
-        pBuilder.define(RAGE_METER, 0);
-        pBuilder.define(TORMENT_MODE, false);
+        pBuilder.define(IS_TITAN, false);
     }
 
     @Override

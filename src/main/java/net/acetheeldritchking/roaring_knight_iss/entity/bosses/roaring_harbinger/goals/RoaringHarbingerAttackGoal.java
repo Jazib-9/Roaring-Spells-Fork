@@ -11,6 +11,7 @@ import net.minecraft.world.phys.Vec3;
 
 public class RoaringHarbingerAttackGoal extends GenericAnimatedWarlockAttackGoal<RoaringHarbingerBoss> {
     final RoaringHarbingerBoss boss;
+    public int roaringStarCooldown;
 
     public RoaringHarbingerAttackGoal(RoaringHarbingerBoss entity, double pSpeedModifier, int minAttackInterval, int maxAttackInterval) {
         super(entity, pSpeedModifier, minAttackInterval, maxAttackInterval);
@@ -89,7 +90,10 @@ public class RoaringHarbingerAttackGoal extends GenericAnimatedWarlockAttackGoal
 
     @Override
     protected void handleAttackLogic(double distanceSquared) {
-        super.handleAttackLogic(distanceSquared);
+        if (roaringStarCooldown > 0)
+        {
+            roaringStarCooldown--;
+        }
 
         if (meleeAnimTimer > 0 && currentAttack != null)
         {
@@ -102,5 +106,6 @@ public class RoaringHarbingerAttackGoal extends GenericAnimatedWarlockAttackGoal
                 }
             }
         }
+        super.handleAttackLogic(distanceSquared);
     }
 }
