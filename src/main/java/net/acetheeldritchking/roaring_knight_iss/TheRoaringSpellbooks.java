@@ -51,6 +51,7 @@ public class TheRoaringSpellbooks {
         // Items
         RKItemRegistry.register(modEventBus);
         // Spells
+        RKSpellRegistries.register(modEventBus);
         // Effects
         // Sounds
         RKSoundEvents.register(modEventBus);

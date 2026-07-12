@@ -6,6 +6,7 @@ import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.util.ItemPropertiesHelper;
 import net.acetheeldritchking.aces_spell_utils.items.weapons.ActiveAndPassiveAbilityMagicSwordItem;
 import net.acetheeldritchking.aces_spell_utils.utils.ASRarities;
+import net.acetheeldritchking.roaring_knight_iss.registries.RKSpellRegistries;
 import net.acetheeldritchking.roaring_knight_iss.utils.RKRarities;
 
 public class DarkSabreItem extends ActiveAndPassiveAbilityMagicSwordItem {
@@ -14,7 +15,7 @@ public class DarkSabreItem extends ActiveAndPassiveAbilityMagicSwordItem {
                 RKWeaponTier.DARK_SABRE,
                 ItemPropertiesHelper.equipment(1).fireResistant().rarity(RKRarities.SHADED_RARITY_PROXY.getValue()).attributes(ExtendedSwordItem.createAttributes(RKWeaponTier.DARK_SABRE)),
                 SpellDataRegistryHolder.of(
-                        new SpellDataRegistryHolder(SpellRegistry.BLACK_HOLE_SPELL, 10))
+                        new SpellDataRegistryHolder(RKSpellRegistries.KNIGHTS_EDGE, 1))
         );
     }
 

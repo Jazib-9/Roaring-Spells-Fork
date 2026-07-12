@@ -41,15 +41,15 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
     }
 
     // new constructor for "surround" mode
-    public DarkSabreProjectile(EntityType<? extends Projectile> pEntityType, Level pLevel, AttackMode mode, double ringAngleOffset) {
-        this(pEntityType, pLevel);
+    public DarkSabreProjectile(Level pLevel, AttackMode mode, double ringAngleOffset) {
+        this(RKEntityRegistry.DARK_SABRE_PROJECTILE.get(), pLevel);
         this.mode = mode;
         this.ringAngleOffset = ringAngleOffset;
     }
 
     // new constructor for "spread" mode
-    public DarkSabreProjectile(EntityType<? extends Projectile> pEntityType, Level pLevel, AttackMode mode, Vec3 sphereOffset) {
-        this(pEntityType, pLevel);
+    public DarkSabreProjectile(Level pLevel, AttackMode mode, Vec3 sphereOffset) {
+        this(RKEntityRegistry.DARK_SABRE_PROJECTILE.get(), pLevel);
         this.mode = mode;
         this.sphereOffset = sphereOffset;
     }
@@ -353,7 +353,7 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
             double angle = (2 * Math.PI / count) * i;
 
             DarkSabreProjectile projectile = new DarkSabreProjectile(
-                    RKEntityRegistry.DARK_SABRE_PROJECTILE.get(),
+                    //RKEntityRegistry.DARK_SABRE_PROJECTILE.get(),
                     level,
                     AttackMode.SURROUND,
                     angle
@@ -389,7 +389,7 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
             Vec3 offset = new Vec3(x * radius, y * radius, z * radius);
 
             DarkSabreProjectile projectile = new DarkSabreProjectile(
-                    RKEntityRegistry.DARK_SABRE_PROJECTILE.get(),
+                    //RKEntityRegistry.DARK_SABRE_PROJECTILE.get(),
                     level,
                     AttackMode.SPREAD,
                     offset
