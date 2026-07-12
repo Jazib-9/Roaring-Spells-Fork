@@ -92,7 +92,7 @@ public class KnightsEdgeSpell extends AbstractSpell {
             if (targetEntity != null)
             {
                 // Surround
-                DarkSabreProjectile.spawnSurroundGroup(level, targetEntity, entity);
+                DarkSabreProjectile.spawnSurroundGroup(level, targetEntity, entity, 5, 2.0, 100);
             }
         }
 

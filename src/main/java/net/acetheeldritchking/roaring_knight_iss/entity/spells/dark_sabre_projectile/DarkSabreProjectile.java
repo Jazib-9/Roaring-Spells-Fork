@@ -344,10 +344,10 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
     Spawn-site helpers - not yet wired into the boss AI / spell cast path.
     Both assume "delay" is in ticks
     */
-    public static void spawnSurroundGroup(Level level, Entity target, Entity owner) {
-        int count = 5;
-        double radius = 2.0;
-        int delayTicks = 100; // 5 seconds
+    public static void spawnSurroundGroup(Level level, Entity target, Entity owner, int count, double radius, int delayTicks) {
+        //int count = 5;
+        //double radius = 2.0;
+        //int delayTicks = 100; // 5 seconds
 
         for (int i = 0; i < count; i++) {
             double angle = (2 * Math.PI / count) * i;
@@ -372,10 +372,10 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
     }
 
     // spawn in a sphere, then fire, no timing given
-    public static void spawnSpreadGroup(Level level, Entity target, Entity owner) {
-        int count = 8;
-        double radius = 2.5;
-        int delayTicks = 100;
+    public static void spawnSpreadGroup(Level level, Entity target, Entity owner, int count, double radius, int delayTicks) {
+        //int count = 8;
+        //double radius = 2.5;
+        //int delayTicks = 100;
 
         for (int i = 0; i < count; i++) {
             // Fibonacci sphere distribution
