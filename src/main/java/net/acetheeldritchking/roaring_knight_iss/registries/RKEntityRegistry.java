@@ -23,11 +23,11 @@ public class RKEntityRegistry {
                     .build(ResourceLocation.fromNamespaceAndPath(TheRoaringSpellbooks.MOD_ID, "harbinger_of_roaring").toString())
             );
 
-    // Dark Sabre Projectile
     public static final DeferredHolder<EntityType<?>, EntityType<DarkSabreProjectile>> DARK_SABRE_PROJECTILE =
             ENTITIES.register("dark_sabre_projectile", () -> EntityType.Builder.<DarkSabreProjectile>of(DarkSabreProjectile::new, MobCategory.MONSTER)
                     .sized(1.6f, 4.8f)
                     .clientTrackingRange(64)
+                    .updateInterval(1)
                     .build(ResourceLocation.fromNamespaceAndPath(TheRoaringSpellbooks.MOD_ID, "dark_sabre_projectile").toString())
             );
 
