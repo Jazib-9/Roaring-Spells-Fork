@@ -54,6 +54,6 @@ public class SwordSpreadAbilityGoal extends AnimatedActionGoal<RoaringHarbingerB
 
         mob.playSound(SoundRegistry.SUMMONED_SWORDS_CAST.get(), 2.5f, Utils.random.nextIntBetweenInclusive(80, 110) * .01f);
         int delay = Utils.random.nextIntBetweenInclusive(85, 100);
-        DarkSabreProjectile.spawnDelayedSpreadGroup(mob.level(), mob.getTarget(), mob, 15, 4.0, 85, 0.75F, 5);
+        DarkSabreProjectile.spawnDelayedSpreadGroup(mob.level(), mob.getTarget(), mob, 15, 4.0, delay, 1.0F, 5);
     }
 }
