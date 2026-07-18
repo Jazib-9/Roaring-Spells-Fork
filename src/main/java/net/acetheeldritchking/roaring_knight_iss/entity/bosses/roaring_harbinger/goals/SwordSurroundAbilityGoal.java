@@ -43,6 +43,6 @@ public class SwordSurroundAbilityGoal extends AnimatedActionGoal<RoaringHarbinge
 
         mob.playSound(SoundRegistry.SUMMONED_SWORDS_CAST.get(), 2.5f, Utils.random.nextIntBetweenInclusive(80, 110) * .01f);
         int delay = Utils.random.nextIntBetweenInclusive(100, 125);
-        DarkSabreProjectile.spawnDelayedSurroundGroup(mob.level(), mob.getTarget(), mob, 5, 2.0, 100, 0.75F, 15);
+        DarkSabreProjectile.spawnDelayedSurroundGroup(mob.level(), mob.getTarget(), mob, 5, 2.0, delay, 0.95F, 15);
     }
 }
