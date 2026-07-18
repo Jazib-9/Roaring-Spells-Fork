@@ -379,6 +379,35 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
         }
     }
 
+    public static void spawnDelayedSurroundGroup(Level level, Entity target, Entity owner, int count, double radius, int delayTicks, float speed, float damage) {
+        //int count = 5;
+        //double radius = 2.0;
+        //int delayTicks = 100; // 5 seconds
+
+        for (int i = 0; i < count; i++) {
+            double angle = (2 * Math.PI / count) * i;
+
+            DarkSabreProjectile projectile = new DarkSabreProjectile(
+                    //RKEntityRegistry.DARK_SABRE_PROJECTILE.get(),
+                    level,
+                    AttackMode.SURROUND,
+                    angle
+            );
+            projectile.setOwner(owner);
+            projectile.setSpeed(speed);
+            projectile.setTarget(target);
+            projectile.setDamage(damage);
+            projectile.delay = delayTicks + i * 2;
+
+            double spawnX = target.getX() + Math.cos(angle) * radius;
+            double spawnY = target.getY() + (target.getEyeHeight() * 0.5);
+            double spawnZ = target.getZ() + Math.sin(angle) * radius;
+            projectile.setPos(spawnX, spawnY, spawnZ);
+
+            level.addFreshEntity(projectile);
+        }
+    }
+
     // spawn in a sphere, then fire, no timing given
     public static void spawnSpreadGroup(Level level, Entity target, Entity owner, int count, double radius, int delayTicks, float speed, float damage) {
         //int count = 8;
@@ -407,6 +436,41 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
             projectile.setTarget(target);
             projectile.setDamage(damage);
             projectile.delay = delayTicks;
+
+            Vec3 spawnPos = target.getBoundingBox().getCenter().add(offset);
+            projectile.setPos(spawnPos.x, spawnPos.y, spawnPos.z);
+
+            level.addFreshEntity(projectile);
+        }
+    }
+
+    public static void spawnDelayedSpreadGroup(Level level, Entity target, Entity owner, int count, double radius, int delayTicks, float speed, float damage) {
+        //int count = 8;
+        //double radius = 2.5;
+        //int delayTicks = 100;
+
+        for (int i = 0; i < count; i++) {
+            // Fibonacci sphere distribution
+            double y = 1 - (i / (double) (count - 1)) * 2; // from 1 to -1
+            double radiusAtY = Math.sqrt(1 - y * y);
+            double goldenAngle = Math.PI * (3 - Math.sqrt(5));
+            double theta = goldenAngle * i;
+            double x = Math.cos(theta) * radiusAtY;
+            double z = Math.sin(theta) * radiusAtY;
+
+            Vec3 offset = new Vec3(x * radius, y * radius, z * radius);
+
+            DarkSabreProjectile projectile = new DarkSabreProjectile(
+                    //RKEntityRegistry.DARK_SABRE_PROJECTILE.get(),
+                    level,
+                    AttackMode.SPREAD,
+                    offset
+            );
+            projectile.setOwner(owner);
+            projectile.setSpeed(speed);
+            projectile.setTarget(target);
+            projectile.setDamage(damage);
+            projectile.delay = delayTicks + i * 2;
 
             Vec3 spawnPos = target.getBoundingBox().getCenter().add(offset);
             projectile.setPos(spawnPos.x, spawnPos.y, spawnPos.z);
