@@ -128,17 +128,17 @@ repositories {
         url = "https://code.redspace.io/snapshots"
     }
 
-    maven {
+    /*maven {
         name = "aces_spell_utilsReleases"
         url = "http://localhost:8080/releases"
         allowInsecureProtocol = true
     }
 
     maven {
-        name = "aces_spell_utilsSnapshots"
+        //name = "aces_spell_utilsSnapshots"
         url = "http://localhost:8080/snapshots"
         allowInsecureProtocol = true
-    }
+    }*/
 
     maven { url = "https://maven.enginehub.org/repo/" }
     maven {
@@ -217,9 +217,9 @@ dependencies {
     //localRuntime "curse.maven:placebo-${placebo_version}"
     //localRuntime "curse.maven:apothic-curios-950712:5108911"
 
-    // Ace's Spell Utils (REQUIRED - It's literally my API mod)
-    //implementation "curse.maven:aces-spell-utils-1299492:7586646"
-    implementation("net.acetheeldritchking.aces_spell_utils:aces_spell_utils:1.2.7.0-1.21.1")
+    //Ace's Spell Utils (REQUIRED - It's literally my API mod)
+    implementation "curse.maven:aces-spell-utils-1299492:8378364"
+    //implementation("net.acetheeldritchking.aces_spell_utils:aces_spell_utils:1.2.7.0-1.21.1")
 
     //QOL
     //todo: 1.21: update these mods

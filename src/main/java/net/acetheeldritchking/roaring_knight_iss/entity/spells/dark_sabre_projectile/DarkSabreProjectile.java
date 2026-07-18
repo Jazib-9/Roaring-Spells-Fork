@@ -9,10 +9,12 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
@@ -76,6 +78,11 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
     public boolean hasTarget()
     {
         return targetEntity != null;
+    }
+
+    //new method used in DarkSabreProjectileRenderer
+    public int getAge() {
+        return age;
     }
 
     public Entity getTargetEntity()
@@ -198,13 +205,13 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
         }
 
         if (age == delay) {
-            // transition: strike toward the target this tick instead of running
-            // the immediate near-collision check (entity is ~2 blocks out, so
-            // that check would never find anything here)
-            Vec3 targetPos = target.getBoundingBox().getCenter();
-            Vec3 strikeMotion = targetPos.subtract(this.position()).normalize().scale(this.getSpeed());
-            this.setDeltaMovement(strikeMotion);
-            this.deltaMovementOld = strikeMotion;
+
+            //AbstractMagicProjectile already has a homing system, better to just use it instead of redefining
+            if (target instanceof LivingEntity livingTarget) {
+                Vec3 initialDirection = target.getBoundingBox().getCenter().subtract(this.position()).normalize();
+                setDeltaMovement(initialDirection.scale(getSpeed()));
+                setHomingTarget(livingTarget);
+            }
             return;
         }
 
@@ -216,7 +223,7 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
         double y = target.getY() + (target.getEyeHeight() * 0.5);
         double z = target.getZ() + Math.sin(currentAngle) * radius;
 
-        setPos(x, y, z);
+        moveTo(x, y, z);
         setDeltaMovement(Vec3.ZERO);
     }
 
@@ -230,17 +237,19 @@ public class DarkSabreProjectile extends AbstractMagicProjectile implements IEnt
             return;
         }
 
-        if (age == delay)
-        {
-            Vec3 targetPos = target.getBoundingBox().getCenter();
-            Vec3 strikeMotion = targetPos.subtract(this.position()).normalize().scale(this.getSpeed());
-            this.setDeltaMovement(strikeMotion);
-            this.deltaMovementOld = strikeMotion;
+        if (age == delay) {
+            //sets a homing target entity via LivingEntity and gives it some motion as otherwise it wouldnt
+            // move, even with a homing target "THONK emoji", same logic for tickSurroundMode()
+            if (target instanceof LivingEntity livingTarget) {
+                Vec3 initialDirection = target.getBoundingBox().getCenter().subtract(this.position()).normalize();
+                setDeltaMovement(initialDirection.scale(getSpeed()));
+                setHomingTarget(livingTarget);
+            }
             return;
         }
 
         Vec3 spherePoint = target.getBoundingBox().getCenter().add(sphereOffset);
-        setPos(spherePoint.x, spherePoint.y, spherePoint.z);
+        moveTo(spherePoint.x, spherePoint.y, spherePoint.z);
         setDeltaMovement(Vec3.ZERO);
     }
 
