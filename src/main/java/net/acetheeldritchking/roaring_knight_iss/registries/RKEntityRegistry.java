@@ -31,6 +31,14 @@ public class RKEntityRegistry {
                     .build(ResourceLocation.fromNamespaceAndPath(TheRoaringSpellbooks.MOD_ID, "dark_sabre_projectile").toString())
             );
 
+    // Dark Star Projectile
+
+    // Dark Star Shrapnel Projectile
+
+    // Dark Fountain
+
+    // Spawn Tower
+
     public static void register(IEventBus eventBus)
     {
         ENTITIES.register(eventBus);
