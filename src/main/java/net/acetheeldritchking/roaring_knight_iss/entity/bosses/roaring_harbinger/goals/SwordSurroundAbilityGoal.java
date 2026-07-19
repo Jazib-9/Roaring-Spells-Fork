@@ -42,7 +42,7 @@ public class SwordSurroundAbilityGoal extends AnimatedActionGoal<RoaringHarbinge
         TheRoaringSpellbooks.LOGGER.debug("GO INTO SWORD SURROUND GOAL");
 
         mob.playSound(SoundRegistry.SUMMONED_SWORDS_CAST.get(), 2.5f, Utils.random.nextIntBetweenInclusive(80, 110) * .01f);
-        int delay = Utils.random.nextIntBetweenInclusive(100, 125);
-        DarkSabreProjectile.spawnDelayedSurroundGroup(mob.level(), mob.getTarget(), mob, 5, 2.0, delay, 0.95F, 15);
+        int delay = Utils.random.nextIntBetweenInclusive(80, 100);
+        DarkSabreProjectile.spawnDelayedSurroundGroup(mob.level(), mob.getTarget(), mob, 5, 5.0, delay, 0.95F, 15);
     }
 }

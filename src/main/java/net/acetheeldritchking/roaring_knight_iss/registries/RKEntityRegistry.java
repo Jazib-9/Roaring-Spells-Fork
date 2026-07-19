@@ -3,6 +3,8 @@ package net.acetheeldritchking.roaring_knight_iss.registries;
 import net.acetheeldritchking.roaring_knight_iss.TheRoaringSpellbooks;
 import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.RoaringHarbingerBoss;
 import net.acetheeldritchking.roaring_knight_iss.entity.spells.dark_sabre_projectile.DarkSabreProjectile;
+import net.acetheeldritchking.roaring_knight_iss.entity.spells.star_projectile.DarkStarProjectileEntity;
+import net.acetheeldritchking.roaring_knight_iss.entity.spells.star_shrapnel.DarkStarShrapnelProjectileEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
@@ -23,21 +25,36 @@ public class RKEntityRegistry {
                     .build(ResourceLocation.fromNamespaceAndPath(TheRoaringSpellbooks.MOD_ID, "harbinger_of_roaring").toString())
             );
 
+    // Dark Sabre Projectile
     public static final DeferredHolder<EntityType<?>, EntityType<DarkSabreProjectile>> DARK_SABRE_PROJECTILE =
-            ENTITIES.register("dark_sabre_projectile", () -> EntityType.Builder.<DarkSabreProjectile>of(DarkSabreProjectile::new, MobCategory.MONSTER)
-                    .sized(1.6f, 4.8f)
+            ENTITIES.register("dark_sabre_projectile", () -> EntityType.Builder.<DarkSabreProjectile>of(DarkSabreProjectile::new, MobCategory.MISC)
+                    .sized(1.6f, 1.6f)
                     .clientTrackingRange(64)
                     .updateInterval(1)
                     .build(ResourceLocation.fromNamespaceAndPath(TheRoaringSpellbooks.MOD_ID, "dark_sabre_projectile").toString())
             );
 
     // Dark Star Projectile
+    public static final DeferredHolder<EntityType<?>, EntityType<DarkStarProjectileEntity>> DARK_STAR_PROJECTILE =
+            ENTITIES.register("dark_star", () -> EntityType.Builder.<DarkStarProjectileEntity>of(DarkStarProjectileEntity::new, MobCategory.MISC)
+                    .sized(1.0f, 1.0f)
+                    .clientTrackingRange(64)
+                    .updateInterval(1)
+                    .build(ResourceLocation.fromNamespaceAndPath(TheRoaringSpellbooks.MOD_ID, "dark_star").toString())
+            );
 
     // Dark Star Shrapnel Projectile
+    public static final DeferredHolder<EntityType<?>, EntityType<DarkStarShrapnelProjectileEntity>> DARK_STAR_SHRAPNEL =
+            ENTITIES.register("dark_star_shrapnel", () -> EntityType.Builder.<DarkStarShrapnelProjectileEntity>of(DarkStarShrapnelProjectileEntity::new, MobCategory.MISC)
+                    .sized(0.6f, 0.6f)
+                    .clientTrackingRange(64)
+                    .updateInterval(1)
+                    .build(ResourceLocation.fromNamespaceAndPath(TheRoaringSpellbooks.MOD_ID, "dark_star_shrapnel").toString())
+            );
 
     // Dark Fountain
 
-    // Spawn Tower
+    // Dark Tower
 
     public static void register(IEventBus eventBus)
     {
