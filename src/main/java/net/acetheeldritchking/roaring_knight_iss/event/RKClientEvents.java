@@ -3,6 +3,8 @@ package net.acetheeldritchking.roaring_knight_iss.event;
 import net.acetheeldritchking.roaring_knight_iss.TheRoaringSpellbooks;
 import net.acetheeldritchking.roaring_knight_iss.entity.render.entity.bosses.black_executioner.BlackExecutionerRenderer;
 import net.acetheeldritchking.roaring_knight_iss.entity.render.spells.dark_sabre_projectile.DarkSabreProjectileRenderer;
+import net.acetheeldritchking.roaring_knight_iss.entity.render.spells.dark_star_projectiles.DarkStarProjectileRenderer;
+import net.acetheeldritchking.roaring_knight_iss.entity.render.spells.dark_star_projectiles.DarkStarShrapnelProjectileRenderer;
 import net.acetheeldritchking.roaring_knight_iss.particle.RedCleaveParticle;
 import net.acetheeldritchking.roaring_knight_iss.registries.RKEntityRegistry;
 import net.acetheeldritchking.roaring_knight_iss.registries.RKParticleRegistry;
@@ -26,10 +28,12 @@ public class RKClientEvents {
     {
         event.registerEntityRenderer(RKEntityRegistry.BLACK_EXECUTIONER_BOSS.get(), BlackExecutionerRenderer::new);
         event.registerEntityRenderer(RKEntityRegistry.DARK_SABRE_PROJECTILE.get(), DarkSabreProjectileRenderer::new);
+        event.registerEntityRenderer(RKEntityRegistry.DARK_STAR_PROJECTILE.get(), DarkStarProjectileRenderer::new);
+        event.registerEntityRenderer(RKEntityRegistry.DARK_STAR_SHRAPNEL.get(), DarkStarShrapnelProjectileRenderer::new);
     }
 
     // Item Rarity rendering
-    @SubscribeEvent
+    /*@SubscribeEvent
     public static void onClientTickEvent(ClientTickEvent.Post event)
     {
         UniqueRarityColorHelper.clientTick++;
@@ -49,7 +53,7 @@ public class RKClientEvents {
             String rawName = itemStack.getHoverName().getString();
             event.getToolTip().set(0, UniqueRarityColorHelper.createWaveGradient(rawName, COLOR_RED, COLOR_DEEP_RED, COLOR_BRIGHT_RED_PINK));
         }
-    }
+    }*/
 
     @SubscribeEvent
     public static void registerParticles(RegisterParticleProvidersEvent event)

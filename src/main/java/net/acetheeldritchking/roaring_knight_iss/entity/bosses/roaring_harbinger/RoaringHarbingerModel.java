@@ -6,9 +6,14 @@ import software.bernie.geckolib.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
 
 public class RoaringHarbingerModel extends GeoModel<RoaringHarbingerBoss> {
+    public static final ResourceLocation TITAN_MODEL = ResourceLocation.fromNamespaceAndPath(TheRoaringSpellbooks.MOD_ID, "geo/harbinger_of_roaring.geo.json");
+    public static final ResourceLocation MODEL = ResourceLocation.fromNamespaceAndPath(TheRoaringSpellbooks.MOD_ID, "geo/harbinger_of_roaring_normal.geo.json");
+
+    public static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(TheRoaringSpellbooks.MOD_ID, "textures/entity/harbinger_of_roaring.png");
+
     @Override
     public ResourceLocation getModelResource(RoaringHarbingerBoss animatable) {
-        return ResourceLocation.fromNamespaceAndPath(TheRoaringSpellbooks.MOD_ID, "geo/harbinger_of_roaring.geo.json");
+        return animatable.isTitan() ? TITAN_MODEL : MODEL;
     }
 
     @Override

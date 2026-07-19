@@ -13,6 +13,7 @@ import io.redspace.ironsspellbooks.entity.mobs.wizards.fire_boss.ExtendedServerB
 import io.redspace.ironsspellbooks.entity.mobs.wizards.fire_boss.FireBossEntity;
 import io.redspace.ironsspellbooks.entity.mobs.wizards.fire_boss.NotIdioticNavigation;
 import io.redspace.ironsspellbooks.network.EntityEventPacket;
+import net.acetheeldritchking.aces_spell_utils.entity.mobs.GenericBossEntity;
 import net.acetheeldritchking.aces_spell_utils.entity.mobs.GenericUniqueBossEntity;
 import net.acetheeldritchking.aces_spell_utils.entity.mobs.goals.WizardSpellComboGoal;
 import net.acetheeldritchking.aces_spell_utils.registries.ASAttributeRegistry;
@@ -23,6 +24,7 @@ import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger
 import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.goals.SwordSpreadAbilityGoal;
 import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.goals.SwordSurroundAbilityGoal;
 import net.acetheeldritchking.roaring_knight_iss.entity.bosses.roaring_harbinger.keyframes.RedCleaveKeyFrame;
+import net.acetheeldritchking.roaring_knight_iss.entity.spells.star_projectile.DarkStarProjectileEntity;
 import net.acetheeldritchking.roaring_knight_iss.registries.RKEntityRegistry;
 import net.acetheeldritchking.roaring_knight_iss.registries.RKSoundEvents;
 import net.minecraft.ChatFormatting;
@@ -99,11 +101,17 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
     private static final int spawnDelay = 20;
 
     // Roaring Ability
-    boolean hasRoared;
-    protected int roaringTimer;
-    protected static final int ROARING_ANIM_DURATION = 20;
-    protected static final int ROARING_STAR_SHOOT_DURATION = 20;
-    protected static final int ROARING_FINAL_STAR_DURATION = 20;
+    boolean hasPerformedHalfHealthRoar;
+    protected int halfHealthTimer;
+    protected static final int ROARING_ANIM_DURATION = 269;
+    protected static final int ROARING_STAR_SHOOT_TIMESTAMP = 20;
+    protected static final int ROARING_PULL_IN_START_TIMESTAMP = 216;
+    protected static final int DARK_STAR_COUNT = 6;
+    protected static final int DARK_STAR_INTERVAL_TICKS = 10;
+    protected static final int DARK_STAR_PER_WAVE = 8;
+    protected double anglePerWave = 15.0;
+    private int darkStarAttackTimer = 0;
+    private int darkStarWavesSpawned = 0;
 
     // Loot
     SimpleContainer deathLoot = null;
@@ -173,9 +181,9 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
                 BossbarManager.startTracking(this.uuid, BOSSBAR_SPRITE);
                 UniqueBossMusicManager.createOrResumeInstance(this);
             }
-            case PROC_ROARING_TIMER -> this.roaringTimer = ROARING_ANIM_DURATION;
+            case PROC_ROARING_TIMER -> this.halfHealthTimer = ROARING_ANIM_DURATION;
             case STOP_ROARING_TIMER -> {
-                this.roaringTimer = 0;
+                this.halfHealthTimer = 0;
                 this.playAnimation("idle");
             }
             case START_MUSIC -> UniqueBossMusicManager.createOrResumeInstance(this);
@@ -253,7 +261,7 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, DeadKingBoss.class, true));
     }
 
-    RoaringHarbingerAttackGoal attackGoal = new RoaringHarbingerAttackGoal(this, 1.5F, 25, 40);
+    public RoaringHarbingerAttackGoal attackGoal = new RoaringHarbingerAttackGoal(this, 1.5F, 25, 40);
 
     // First Phase
     private void firstPhaseGoals()
@@ -266,41 +274,18 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
         this.goalSelector.addGoal(4, new SpellBarrageGoal(this, SpellRegistry.ELDRITCH_BLAST_SPELL.get(), 1, 3, 80, 150, 3));
         this.goalSelector.addGoal(3, new SpellBarrageGoal(this, SpellRegistry.TELEPORT_SPELL.get(), 1, 3, 80, 150, 3));
 
-        this.goalSelector.addGoal(2, new ExtremeSlashAbilityGoal(this));
         this.goalSelector.addGoal(2, new SwordSurroundAbilityGoal(this));
         this.goalSelector.addGoal(2, new SwordSpreadAbilityGoal(this));
 
         this.attackGoal = (RoaringHarbingerAttackGoal) new RoaringHarbingerAttackGoal(this, 1.5F, 25, 40)
                 .setMoveset(List.of(
                         new AttackAnimationData(42, "slash_1", 22),
-                        new AttackAnimationData(51, "slash_2", 26),
-                        AttackAnimationData.builder("consecutive_slash")
-                                .length(120)
-                                .area(0.25f)
-                                .rangeMultiplier(4.5f)
-                                .attacks(
-                                        new RedCleaveKeyFrame(28, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, false)),
-                                        new RedCleaveKeyFrame(33, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, true)),
-                                        new RedCleaveKeyFrame(35, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, false)),
-                                        new RedCleaveKeyFrame(41, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, true)),
-                                        new RedCleaveKeyFrame(45, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, false)),
-                                        new RedCleaveKeyFrame(50, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, true)),
-                                        new RedCleaveKeyFrame(52, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, false)),
-                                        new RedCleaveKeyFrame(57, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, true)),
-                                        new RedCleaveKeyFrame(60, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, false)),
-                                        new RedCleaveKeyFrame(65, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, true)),
-                                        new RedCleaveKeyFrame(68, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, false)),
-                                        new RedCleaveKeyFrame(74, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, true)),
-                                        new RedCleaveKeyFrame(77, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, false)),
-                                        new RedCleaveKeyFrame(82, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, true)),
-                                        new RedCleaveKeyFrame(85, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, false))
-                                ).build()
+                        new AttackAnimationData(51, "slash_2", 26)
                 ))
                 .setComboChance(0.8F)
                 .setMeleeAttackInverval(45, 55)
                 .setMeleeMovespeedModifier(1.5F)
                 .setMeleeBias(0.75f, 1.0f)
-                .setIsFlying()
                 .setSpells(
                         // Attack
                         List.of(
@@ -348,8 +333,10 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
         this.goalSelector.addGoal(4, new SpellBarrageGoal(this, SpellRegistry.TELEPORT_SPELL.get(), 1, 3, 80, 150, 3));
 
         this.goalSelector.addGoal(2, new ExtremeSlashAbilityGoal(this));
+        this.goalSelector.addGoal(2, new SwordSurroundAbilityGoal(this));
+        this.goalSelector.addGoal(2, new SwordSpreadAbilityGoal(this));
 
-        this.attackGoal = (RoaringHarbingerAttackGoal) new RoaringHarbingerAttackGoal(this, 1.5F, 25, 40)
+        this.attackGoal = (RoaringHarbingerAttackGoal) new RoaringHarbingerAttackGoal(this, 1.65F, 15, 30)
                 .setMoveset(List.of(
                         new AttackAnimationData(42, "slash_1", 22),
                         new AttackAnimationData(51, "slash_2", 26),
@@ -375,39 +362,39 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
                                         new RedCleaveKeyFrame(85, new Vec3(0, 0, 0), new Vec3(0, 0, 0), new RedCleaveKeyFrame.SwingData(false, false))
                                 ).build()
                 ))
-                .setComboChance(0.8F)
-                .setMeleeAttackInverval(45, 55)
-                .setMeleeMovespeedModifier(1.5F)
+                .setComboChance(1.0F)
+                .setMeleeAttackInverval(35, 45)
+                .setMeleeMovespeedModifier(1.75F)
                 .setMeleeBias(0.75f, 1.0f)
                 .setSpells(
                         // Attack
                         List.of(
-                                SpellRegistry.SHADOW_SLASH.get()
+                                SpellRegistry.MAGIC_MISSILE_SPELL.get()
                         ),
                         // Defense
                         List.of(
                                 SpellRegistry.COUNTERSPELL_SPELL.get(),
-                                SpellRegistry.CHARGE_SPELL.get(),
                                 SpellRegistry.ABYSSAL_SHROUD_SPELL.get()
                         ),
                         // Movement
                         List.of(
-                                SpellRegistry.SHADOW_SLASH.get()
+                                SpellRegistry.TELEPORT_SPELL.get()
                         ),
                         // Support
                         List.of(
                                 SpellRegistry.COUNTERSPELL_SPELL.get()
                         )
                 ).setSingleUseSpell(SpellRegistry.SONIC_BOOM_SPELL.get(), 70, 100, 3, 5)
-                .setSpellQuality(1.0f, 1.0f);
+                .setSpellQuality(1.2f, 1.2f);
 
         this.goalSelector.addGoal(3, attackGoal);
 
+        // Defensive combo
         this.goalSelector.addGoal(3, new WizardSpellComboGoal(this,
                 List.of(
                         SpellRegistry.TELEPORT_SPELL.get(),
                         SpellRegistry.COUNTERSPELL_SPELL.get(),
-                        SpellRegistry.SHADOW_SLASH.get()
+                        SpellRegistry.ABYSSAL_SHROUD_SPELL.get()
                 ), 1.3f, 1.3f, 80, 150));
 
         this.goalSelector.addGoal(5, new PatrolNearLocationGoal(this, 32.0F, 0.9));
@@ -416,24 +403,80 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
 
     public void triggerHalfHealthRoaring()
     {
-        hasRoared = true;
-        roaringTimer = ROARING_ANIM_DURATION;
+        hasPerformedHalfHealthRoar = true;
+        halfHealthTimer = ROARING_ANIM_DURATION;
         this.castComplete();
         this.attackGoal.stopMeleeAction();
-        this.attackGoal.roaringStarCooldown = 400;
         this.serverTriggerEvent(PROC_ROARING_TIMER);
         this.serverTriggerAnimation("roaring");
     }
 
     public void stopHalfHealthRoaring()
     {
-        roaringTimer = 0;
+        halfHealthTimer = 0;
         this.serverTriggerEvent(STOP_ROARING_TIMER);
     }
 
     public boolean isRoaring()
     {
-        return roaringTimer > 0;
+        return halfHealthTimer > 0;
+    }
+
+    private void handleHalfHealthRoaring()
+    {
+        if (level().isClientSide)
+        {
+            return;
+        }
+
+        targetSelector.tick();
+        if (this.getTarget() != null)
+        {
+            this.lookControl.setLookAt(this.getTarget());
+        }
+        lookControl.tick();
+
+        int tick = ROARING_ANIM_DURATION - halfHealthTimer;
+
+        // Start shooting out shit
+        if (tick == ROARING_STAR_SHOOT_TIMESTAMP)
+        {
+            this.darkStarAttackTimer = 0;
+            this.darkStarWavesSpawned = 0;
+        }
+
+        if (tick >= ROARING_STAR_SHOOT_TIMESTAMP && tick < ROARING_PULL_IN_START_TIMESTAMP)
+        {
+            this.darkStarAttackTimer++;
+
+            if (this.darkStarWavesSpawned < DARK_STAR_COUNT && this.darkStarAttackTimer % DARK_STAR_INTERVAL_TICKS == 0)
+            {
+                spawnDarkStar(this.darkStarWavesSpawned);
+                this.darkStarWavesSpawned++;
+            }
+
+            if (halfHealthTimer == 0 && this.darkStarWavesSpawned >= DARK_STAR_COUNT)
+            {
+                stopHalfHealthRoaring();
+            }
+        }
+    }
+
+    private void spawnDarkStar(int wave)
+    {
+        double baseAngle = Math.toRadians(wave * anglePerWave);
+
+        for (int i = 0; i < DARK_STAR_PER_WAVE; i++)
+        {
+            double angle = baseAngle * i * (2 * Math.PI / DARK_STAR_PER_WAVE);
+
+            DarkStarProjectileEntity darkStar = new DarkStarProjectileEntity(this.level(), angle, ROARING_STAR_SHOOT_TIMESTAMP, ROARING_PULL_IN_START_TIMESTAMP, this);
+            darkStar.setOwner(this);
+            darkStar.setPos(this.getX(), this.getEyeY(), this.getZ());
+            darkStar.setDamage(10F);
+
+            this.level().addFreshEntity(darkStar);
+        }
     }
 
     @Override
@@ -448,6 +491,34 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
 
         // Same as what Tyros has
         this.bossEvent.setProgress(health / MAX_HEALTH);
+
+        if (isRoaring())
+        {
+            halfHealthTimer--;
+            if (!level().isClientSide)
+            {
+                handleHalfHealthRoaring();
+                // Set phase
+                setPhase(Phase.SecondPhase);
+                // Set goals
+                secondPhaseGoals();
+                // Titan
+                setTitan(true);
+            }
+        }
+    }
+
+    @Override
+    protected void customServerAiStep() {
+        super.customServerAiStep();
+
+        float health = this.getHealth();
+        float MAX_HEALTH = this.getMaxHealth();
+
+        if (!hasPerformedHalfHealthRoar && health < MAX_HEALTH * 0.5F)
+        {
+            triggerHalfHealthRoaring();
+        }
     }
 
     @Override
@@ -471,6 +542,19 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
     }
 
     @Override
+    public void push(Entity entity) {
+        if (!isRoaring())
+        {
+            super.push(entity);
+        }
+    }
+
+    @Override
+    public boolean isPushable() {
+        return false;
+    }
+
+    @Override
     public void kill() {
         if (this.isDeadOrDying())
         {
@@ -479,6 +563,26 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
         else {
             super.kill();
         }
+    }
+
+    @Override
+    public boolean hurt(DamageSource source, float amount) {
+        if (isTitan())
+        {
+            amount *= 0.50f;
+        }
+        if (isRoaring())
+        {
+            // I don't want people nuking the boss while it's charging up
+            amount *= 0.80f;
+        }
+        // damage limiter - yoinked from Tyros
+        var limit = getMaxHealth() * 0.025f;
+        if (amount > limit) {
+            amount = limit + (amount - limit) * .3f; // damage about limit has .3x multiplier applied
+        }
+
+        return super.hurt(source, amount);
     }
 
     @Override
@@ -525,7 +629,6 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
 
     // Setters & Getters
     // Phases
-    @Override
     public void setPhase(int phase) {
         this.entityData.set(PHASE, phase);
     }
@@ -550,6 +653,11 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
         super.addAdditionalSaveData(pCompound);
         // Phases
         pCompound.putInt("phase", getPhase());
+        // Titan
+        pCompound.putBoolean("titan", isTitan());
+        // Half health roaring
+        pCompound.putInt("halfHealthTimer", halfHealthTimer);
+        pCompound.putBoolean("halfHealthAttack", hasPerformedHalfHealthRoar);
     }
 
     @Override
@@ -561,22 +669,28 @@ public class RoaringHarbingerBoss extends GenericUniqueBossEntity {
         }
         // Phases
         setPhase(pCompound.getInt("phase"));
-        /*if (isPhase(GenericBossEntity.Phase.SecondPhase))
+        if (isPhase(Phase.SecondPhase))
         {
             secondPhaseGoals();
-        }*/
+        }
         // Loot
         if (deathLoot != null)
         {
             pCompound.put("deathLootItems", deathLoot.createTag(this.registryAccess()));
         }
-        // Loot
         if (pCompound.contains("deathLootItems", 9))
         {
             var tag = pCompound.getList("deathLootItems", 10);
             this.deathLoot = new SimpleContainer(tag.size());
             this.deathLoot.fromTag(tag, this.registryAccess());
         }
+
+        // Roaring
+        this.halfHealthTimer = pCompound.getInt("halfHealthTimer");
+        this.hasPerformedHalfHealthRoar = pCompound.getBoolean("halfHealthAttack");
+
+        // Titan
+        setTitan(pCompound.getBoolean("titan"));
 
         // Boss Bar
         if (this.hasCustomName())

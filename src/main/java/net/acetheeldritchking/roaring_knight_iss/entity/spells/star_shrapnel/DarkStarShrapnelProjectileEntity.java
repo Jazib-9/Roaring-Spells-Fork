@@ -1,16 +1,23 @@
 package net.acetheeldritchking.roaring_knight_iss.entity.spells.star_shrapnel;
 
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.damage.DamageSources;
 import io.redspace.ironsspellbooks.entity.spells.AbstractMagicProjectile;
 import io.redspace.ironsspellbooks.util.ParticleHelper;
 import net.acetheeldritchking.roaring_knight_iss.registries.RKEntityRegistry;
 import net.minecraft.core.Holder;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
@@ -71,6 +78,33 @@ public class DarkStarShrapnelProjectileEntity extends AbstractMagicProjectile im
     @Override
     public double getTick(Object o) {
         return tickCount;
+    }
+
+    @Override
+    protected void onHit(@NotNull HitResult hitresult) {
+        if (!this.level().isClientSide)
+        {
+            float explosionRadius = getExplosionRadius();
+            var explosionRadiusSqr = explosionRadius * explosionRadius;
+            var entities = level().getEntities(this, this.getBoundingBox().inflate(explosionRadius));
+            Vec3 losPoint = Utils.raycastForBlock(level(), this.position(), this.position().add(0, 2, 0), ClipContext.Fluid.NONE).getLocation();
+            for (Entity entity : entities) {
+                double distanceSqr = entity.distanceToSqr(hitresult.getLocation());
+                if (distanceSqr < explosionRadiusSqr && canHitEntity(entity) && Utils.hasLineOfSight(level(), losPoint, entity.getBoundingBox().getCenter(), true)) {
+                    double p = (1 - distanceSqr / explosionRadiusSqr);
+                    float damage = (float) (this.damage * p);
+                    var damageSource = new DamageSource(DamageSources.getHolderFromResource(entity, DamageTypes.MAGIC), this, getOwner());
+                    DamageSources.applyDamage(entity, damage, damageSource);
+                }
+            }
+            this.discardHelper(hitresult);
+        }
+    }
+
+    @Override
+    protected void onHitEntity(@NotNull EntityHitResult pResult) {
+        onHit(pResult);
+        super.onHitEntity(pResult);
     }
 
     @Override

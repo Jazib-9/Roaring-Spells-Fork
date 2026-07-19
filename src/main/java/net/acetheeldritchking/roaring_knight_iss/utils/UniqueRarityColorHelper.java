@@ -3,6 +3,7 @@ package net.acetheeldritchking.roaring_knight_iss.utils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.util.Mth;
 
 public class UniqueRarityColorHelper {
     // Colors will be handled in the client class
@@ -134,6 +135,58 @@ public class UniqueRarityColorHelper {
         int b = (int)(b1 + (b2 - b1) * ratio);
 
         // recombine the three components back into a single hex color int
+        return (r << 16) | (g << 8) | b;
+    }
+
+    // From L_Ender's Cataclysm
+    // https://github.com/lender544/new1.20.1/blob/1.21/src/main/java/com/github/L_Ender/cataclysm/client/CustomRarity/CMRarity.java
+    public static int getPulsingColor(long cycle,int color1,int color2) {
+        float progress = (float)(Math.sin((System.currentTimeMillis() % cycle) / (double)cycle * 2.0 * Math.PI) + 1.0) / 2.0f;
+
+        int R1 = (color1 >> 16) & 0xFF;
+        int G1 = (color1 >> 8) & 0xFF;
+        int B1 = color1 & 0xFF;
+        int R2 = (color2 >> 16) & 0xFF;
+        int G2 = (color2 >> 8) & 0xFF;
+        int B2 = color2 & 0xFF;
+
+
+        int r = (int) Mth.lerp(progress, R1, R2);
+        int g = (int) Mth.lerp(progress, G1, G2);
+        int b = (int) Mth.lerp(progress, B1, B2);
+
+        return (r << 16) | (g << 8) | b;
+    }
+
+    public static int getPulsingBlendColor(long cycle,int color1,int color2, int blend) {
+        float progress = (float)(Math.sin((System.currentTimeMillis() % cycle) / (double)cycle * 3.0 * Math.PI) + 1.0) / 3.0f;
+
+        // Color 1
+        int R1 = (color1 >> 16) & 0xFF;
+        int G1 = (color1 >> 8) & 0xFF;
+        int B1 = color1 & 0xFF;
+        // Color 2
+        int R2 = (color2 >> 16) & 0xFF;
+        int G2 = (color2 >> 8) & 0xFF;
+        int B2 = color2 & 0xFF;
+        // Blend
+        int blendR = (blend >> 16) & 0xFF;
+        int blendG = (blend >> 8) & 0xFF;
+        int blendB = blend & 0xFF;
+
+
+        int r1 = (int) Mth.lerp(progress/2, R1, blendR);
+        int g1 = (int) Mth.lerp(progress/2, G1, blendG);
+        int b1 = (int) Mth.lerp(progress/2, B1, blendB);
+
+        int r2 = (int) Mth.lerp(progress/2, blendR, R2);
+        int g2 = (int) Mth.lerp(progress/2, blendG, G2);
+        int b2 = (int) Mth.lerp(progress/2, blendB, B2);
+
+        int r = (int) Mth.lerp(progress, r1, r2);
+        int g = (int) Mth.lerp(progress, g1, g2);
+        int b = (int) Mth.lerp(progress, b1, b2);
+
         return (r << 16) | (g << 8) | b;
     }
 }

@@ -1,6 +1,8 @@
 package net.acetheeldritchking.roaring_knight_iss.entity.spells.star_projectile;
 
+import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
 import io.redspace.ironsspellbooks.api.util.Utils;
+import io.redspace.ironsspellbooks.damage.DamageSources;
 import io.redspace.ironsspellbooks.entity.spells.AbstractMagicProjectile;
 import io.redspace.ironsspellbooks.registries.SoundRegistry;
 import io.redspace.ironsspellbooks.util.ParticleHelper;
@@ -14,10 +16,17 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoAnimatable;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animation.AnimatableManager;
@@ -28,29 +37,31 @@ import java.util.Optional;
 public class DarkStarProjectileEntity extends AbstractMagicProjectile implements GeoAnimatable {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
+    // Stuff for the actual movement and explarding
+    private static int startTicks = 0;
+    private static int pullTicks = 0;
+    private final static double maxRadius = 12.0;
+    private final static double pullInTargetRadius = 3.0;
+    private final static double angularSpeed = Math.toRadians(5.0);
+    private final static double outwardSpeed = 0.8;
+    private final static int fragCount = 2;
+
+    private double initialAngle;
+    private Vec3 fallbackOrigin = Vec3.ZERO;
+
     public DarkStarProjectileEntity(EntityType<? extends Projectile> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
     }
 
-    public DarkStarProjectileEntity(Level pLevel, double initialAngle) {
+    public DarkStarProjectileEntity(Level pLevel, double initialAngle, int startTicks, int pullTicks, LivingEntity owner) {
         this(RKEntityRegistry.DARK_STAR_PROJECTILE.get(), pLevel);
         this.setNoGravity(true);
         this.noPhysics = true;
         this.initialAngle = initialAngle;
-        this.fallbackOrigin = this.getOwner().position();
+        this.fallbackOrigin = owner.position();
+        this.startTicks = startTicks;
+        this.pullTicks = pullTicks;
     }
-
-    // Stuff for the actual movement and explarding
-    private final static int startTicks = 20*20;
-    private final static int pullTicks = 5*20;
-    private final static double maxRadius = 12.0;
-    private final static double pullInTargetRadius = 3.0;
-    private final static double angularSpeed = Math.toRadians(6.0);
-    private final static double outwardSpeed = 0.18;
-    private final static int fragCount = 5;
-
-    private double initialAngle;
-    private Vec3 fallbackOrigin = Vec3.ZERO;
 
     @Override
     public void trailParticles() {
@@ -72,7 +83,7 @@ public class DarkStarProjectileEntity extends AbstractMagicProjectile implements
 
     @Override
     public float getSpeed() {
-        return 0.1F;
+        return 0.0F;
     }
 
     @Override
@@ -138,12 +149,34 @@ public class DarkStarProjectileEntity extends AbstractMagicProjectile implements
             shrapnel.setOwner(this);
             shrapnel.setPos(this.getX(), this.getY(), this.getZ());
 
-            double speed = 0.5;
+            double speed = 0.2;
             shrapnel.setDeltaMovement(Math.cos(angle) * speed, 0.05, Math.sin(angle) * speed);
             this.level().addFreshEntity(shrapnel);
         }
 
         this.discard();
+    }
+
+    // This aint hitting anything </3
+    @Override
+    protected void onHit(@NotNull HitResult hitresult) {
+        if (!this.level().isClientSide)
+        {
+            float explosionRadius = getExplosionRadius();
+            var explosionRadiusSqr = explosionRadius * explosionRadius;
+            var entities = level().getEntities(this, this.getBoundingBox().inflate(explosionRadius));
+            Vec3 losPoint = Utils.raycastForBlock(level(), this.position(), this.position().add(0, 2, 0), ClipContext.Fluid.NONE).getLocation();
+            for (Entity entity : entities) {
+                double distanceSqr = entity.distanceToSqr(hitresult.getLocation());
+                if (distanceSqr < explosionRadiusSqr && canHitEntity(entity) && Utils.hasLineOfSight(level(), losPoint, entity.getBoundingBox().getCenter(), true)) {
+                    double p = (1 - distanceSqr / explosionRadiusSqr);
+                    float damage = (float) (this.damage * p);
+                    var damageSource = new DamageSource(DamageSources.getHolderFromResource(entity, DamageTypes.MAGIC), this, getOwner());
+                    DamageSources.applyDamage(entity, damage, damageSource);
+                }
+            }
+            this.discardHelper(hitresult);
+        }
     }
 
     @Override

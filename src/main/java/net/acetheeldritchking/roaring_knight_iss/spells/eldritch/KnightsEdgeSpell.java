@@ -91,11 +91,13 @@ public class KnightsEdgeSpell extends AbstractSpell {
             var targetEntity = targetingData.getTarget((ServerLevel) level);
             if (targetEntity != null)
             {
+                int delay = Utils.random.nextIntBetweenInclusive(80, 100);
+
                 // Surround
-                DarkSabreProjectile.spawnSurroundGroup(level, targetEntity, entity, 5, 2.0, 100, 0.75F, getDamage(spellLevel, entity));
+                DarkSabreProjectile.spawnDelayedSurroundGroup(level, targetEntity, entity, 5, 2.0, delay, 0.75F, getDamage(spellLevel, entity));
 
                 // Spread
-                //DarkSabreProjectile.spawnSpreadGroup(level, targetEntity, entity, 10, 5.5, 100, 0.75F, getDamage(spellLevel, entity));
+                //DarkSabreProjectile.spawnDelayedSpreadGroup(level, targetEntity, entity, 10, 5.5, delay, 0.75F, getDamage(spellLevel, entity));
             }
         }
 

@@ -7,7 +7,7 @@ import software.bernie.geckolib.model.GeoModel;
 public class DarkStarShrapnelProjectileModel extends GeoModel<DarkStarShrapnelProjectileEntity> {
     @Override
     public ResourceLocation getModelResource(DarkStarShrapnelProjectileEntity darkStarShrapnelProjectileEntity) {
-        return ResourceLocation.fromNamespaceAndPath(TheRoaringSpellbooks.MOD_ID, "geo/star_shrapnel.geo.json");
+        return ResourceLocation.fromNamespaceAndPath(TheRoaringSpellbooks.MOD_ID, "geo/star_shrapnel_projectile.geo.json");
     }
 
     @Override

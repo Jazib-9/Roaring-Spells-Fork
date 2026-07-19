@@ -37,7 +37,7 @@ public class RKEntityRegistry {
     // Dark Star Projectile
     public static final DeferredHolder<EntityType<?>, EntityType<DarkStarProjectileEntity>> DARK_STAR_PROJECTILE =
             ENTITIES.register("dark_star", () -> EntityType.Builder.<DarkStarProjectileEntity>of(DarkStarProjectileEntity::new, MobCategory.MISC)
-                    .sized(1.0f, 1.0f)
+                    .sized(1.6f, 1.6f)
                     .clientTrackingRange(64)
                     .updateInterval(1)
                     .build(ResourceLocation.fromNamespaceAndPath(TheRoaringSpellbooks.MOD_ID, "dark_star").toString())
@@ -46,7 +46,7 @@ public class RKEntityRegistry {
     // Dark Star Shrapnel Projectile
     public static final DeferredHolder<EntityType<?>, EntityType<DarkStarShrapnelProjectileEntity>> DARK_STAR_SHRAPNEL =
             ENTITIES.register("dark_star_shrapnel", () -> EntityType.Builder.<DarkStarShrapnelProjectileEntity>of(DarkStarShrapnelProjectileEntity::new, MobCategory.MISC)
-                    .sized(0.6f, 0.6f)
+                    .sized(1.0f, 1.0f)
                     .clientTrackingRange(64)
                     .updateInterval(1)
                     .build(ResourceLocation.fromNamespaceAndPath(TheRoaringSpellbooks.MOD_ID, "dark_star_shrapnel").toString())

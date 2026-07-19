@@ -38,11 +38,30 @@ public class SwordSurroundAbilityGoal extends AnimatedActionGoal<RoaringHarbinge
     }
 
     @Override
+    public void tick() {
+        if (mob.getTarget() != null)
+        {
+            mob.attackGoal.setTarget(mob.getTarget());
+        }
+        super.tick();
+    }
+
+    @Override
     protected void doAction() {
         TheRoaringSpellbooks.LOGGER.debug("GO INTO SWORD SURROUND GOAL");
 
-        mob.playSound(SoundRegistry.SUMMONED_SWORDS_CAST.get(), 2.5f, Utils.random.nextIntBetweenInclusive(80, 110) * .01f);
-        int delay = Utils.random.nextIntBetweenInclusive(80, 100);
-        DarkSabreProjectile.spawnDelayedSurroundGroup(mob.level(), mob.getTarget(), mob, 5, 5.0, delay, 0.95F, 15);
+        var target = mob.getTarget();
+        if (target != null)
+        {
+            mob.playSound(SoundRegistry.SUMMONED_SWORDS_CAST.get(), 2.5f, Utils.random.nextIntBetweenInclusive(80, 110) * .01f);
+            int delay = Utils.random.nextIntBetweenInclusive(80, 100);
+            if (mob.isTitan())
+            {
+                DarkSabreProjectile.spawnDelayedSurroundGroup(mob.level(), mob.getTarget(), mob, 7, 5.0, delay, 1.0F, 15);
+            } else
+            {
+                DarkSabreProjectile.spawnDelayedSurroundGroup(mob.level(), mob.getTarget(), mob, 5, 5.0, delay, 0.95F, 10);
+            }
+        }
     }
 }

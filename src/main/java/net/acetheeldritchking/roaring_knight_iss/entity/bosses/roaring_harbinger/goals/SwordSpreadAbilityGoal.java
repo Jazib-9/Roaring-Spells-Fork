@@ -39,6 +39,10 @@ public class SwordSpreadAbilityGoal extends AnimatedActionGoal<RoaringHarbingerB
 
     @Override
     public void tick() {
+        if (mob.getTarget() != null)
+        {
+            mob.attackGoal.setTarget(mob.getTarget());
+        }
         // Stop moving while we do this ability
         if (abilityTimer <= 112)
         {
@@ -52,8 +56,18 @@ public class SwordSpreadAbilityGoal extends AnimatedActionGoal<RoaringHarbingerB
     protected void doAction() {
         TheRoaringSpellbooks.LOGGER.debug("GO INTO SWORD SPREAD GOAL");
 
-        mob.playSound(SoundRegistry.SUMMONED_SWORDS_CAST.get(), 2.5f, Utils.random.nextIntBetweenInclusive(80, 110) * .01f);
-        int delay = Utils.random.nextIntBetweenInclusive(65, 85);
-        DarkSabreProjectile.spawnDelayedSpreadGroup(mob.level(), mob.getTarget(), mob, 15, 4.0, delay, 1.0F, 5);
+        var target = mob.getTarget();
+        if (target != null)
+        {
+            mob.playSound(SoundRegistry.SUMMONED_SWORDS_CAST.get(), 2.5f, Utils.random.nextIntBetweenInclusive(80, 110) * .01f);
+            int delay = Utils.random.nextIntBetweenInclusive(65, 85);
+            if (mob.isTitan())
+            {
+                DarkSabreProjectile.spawnDelayedSpreadGroup(mob.level(), mob.getTarget(), mob, 15, 4.0, delay, 1.2F, 8);
+            } else
+            {
+                DarkSabreProjectile.spawnDelayedSpreadGroup(mob.level(), mob.getTarget(), mob, 10, 4.0, delay, 1.0F, 5);
+            }
+        }
     }
 }
